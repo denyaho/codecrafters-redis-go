@@ -28,5 +28,6 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close()
+	conn.Read(make([]byte, 1024)))
 	conn.Write([]byte("+PONG\r\n"))
 }
