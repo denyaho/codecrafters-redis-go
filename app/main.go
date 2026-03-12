@@ -28,6 +28,11 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close()
-	conn.Read(make([]byte, 1024))
-	conn.Write([]byte("+PONG\r\n"))
+	for {
+		count, _ := conn.Read(make([]byte, 1024))
+		if count == 0 {
+			fmt.Println("Client disconnected")
+		}
+		conn.Write([]byte("+PONG\r\n"))
+	}
 }
