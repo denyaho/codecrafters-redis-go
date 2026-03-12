@@ -29,9 +29,11 @@ func main() {
 	}
 	defer conn.Close()
 	for {
-		count, _ := conn.Read(make([]byte, 1024))
-		if count == 0 {
-			fmt.Println("Client disconnected")
+		buf := make([]byte, 1024)
+		_, err := conn.Read(buf)
+		if err != nil {
+			fmt.Println("Connection closed")
+			return
 		}
 		conn.Write([]byte("+PONG\r\n"))
 	}
