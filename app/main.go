@@ -12,13 +12,16 @@ var _ = net.Listen
 var _ = os.Exit
 
 func reply_pong(conn net.Conn) {
-	buf := make([]byte, 1024)
-	_, err := conn.Read(buf)
-	if err != nil {
-		fmt.Println("Connection closed")
-		return
+	defer conn.Close()
+	for {
+		buf := make([]byte, 1024)
+		_, err := conn.Read(buf)
+		if err != nil {
+			fmt.Println("Connection closed")
+			return
+		}
+		conn.Write([]byte("+PONG\r\n"))
 	}
-	conn.Write([]byte("+PONG\r\n"))
 }
 
 func main() {
@@ -32,22 +35,12 @@ func main() {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
 	}
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
-	defer conn.Close()
 	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			continue
+		}
 		go reply_pong(conn)
 	}
-	// for {
-	// 	buf := make([]byte, 1024)
-	// 	_, err := conn.Read(buf)
-	// 	if err != nil {
-	// 		fmt.Println("Connection closed")
-	// 		return
-	// 	}
-	// 	conn.Write([]byte("+PONG\r\n"))
-	// }
 }
