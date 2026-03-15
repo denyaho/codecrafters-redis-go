@@ -11,6 +11,16 @@ import (
 var _ = net.Listen
 var _ = os.Exit
 
+func reply_pong(conn net.Conn) {
+	buf := make([]byte, 1024)
+	_, err := conn.Read(buf)
+	if err != nil {
+		fmt.Println("Connection closed")
+		return
+	}
+	conn.Write([]byte("+PONG\r\n"))
+}
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
@@ -29,12 +39,15 @@ func main() {
 	}
 	defer conn.Close()
 	for {
-		buf := make([]byte, 1024)
-		_, err := conn.Read(buf)
-		if err != nil {
-			fmt.Println("Connection closed")
-			return
-		}
-		conn.Write([]byte("+PONG\r\n"))
+		go reply_pong(conn)
 	}
+	// for {
+	// 	buf := make([]byte, 1024)
+	// 	_, err := conn.Read(buf)
+	// 	if err != nil {
+	// 		fmt.Println("Connection closed")
+	// 		return
+	// 	}
+	// 	conn.Write([]byte("+PONG\r\n"))
+	// }
 }
