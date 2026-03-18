@@ -47,7 +47,7 @@ func handleConnection(conn net.Conn) {
 			}
 
 			if strings.ToUpper(args[0]) == "ECHO" {
-				conn.Write([]byte(fmt.Sprintf("%d\r\n%s\r\n", len(args[1]), args[1])))
+				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[1]), args[1])))
 			}else {
 				reply_pong(conn)
 			}
