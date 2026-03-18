@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
-
+	"bufio"
+	"strings"
+	"strconv"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -21,6 +23,37 @@ func reply_pong(conn net.Conn) {
 			return
 		}
 		conn.Write([]byte("+PONG\r\n"))
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	reader := bufio.NewReader(conn)
+	for {
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("failed to read from connection: ", err.Error())
+			return
+		}
+		if message[0] == '*' {
+			countstr := strings.TrimSpace(message[1:])
+			count, _ := strconv.Atoi(countstr)
+			
+			args := make([]string, count)
+			for i := 0; i < count; i++ {
+				reader.ReadString('\n')
+				word, _ := reader.ReadString('\n')
+				args[i] = strings.TrimSpace(word)
+			}
+
+			if strings.ToUpper(args[0]) == "ECHO" {
+				conn.Write([]byte(fmt.Sprintf("%d\r\n%s\r\n", len(args[1]), args[1])))
+			}else {
+				reply_pong(conn)
+			}
+		}
+
+
 	}
 }
 
@@ -41,6 +74,6 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
 		}
-		go reply_pong(conn)
+		go handleConnection(conn)
 	}
 }
