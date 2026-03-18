@@ -52,7 +52,6 @@ func handleConnection(conn net.Conn) {
 				conn.Write([]byte("$4\r\nPONG\r\n"))
 			}
 		}
-		conn.Write([]byte("$4\r\nPONG\r\n"))
 	}
 }
 
