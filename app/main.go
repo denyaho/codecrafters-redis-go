@@ -52,8 +52,7 @@ func handleConnection(conn net.Conn) {
 				reply_pong(conn)
 			}
 		}
-
-
+		reply_pong(conn)
 	}
 }
 
