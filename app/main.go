@@ -60,7 +60,7 @@ func handleConnection(conn net.Conn) {
 			}else if strings.ToUpper(args[0]) == "SET" {
 				ans[args[1]] = args[2]
 				conn.Write([]byte("+OK\r\n"))
-			}else if strings.ToUpper(args[0]) == " GET"{
+			}else if strings.ToUpper(args[0]) == "GET"{
 				if val, ok := ans[args[1]]; ok {
 					conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
 				}
