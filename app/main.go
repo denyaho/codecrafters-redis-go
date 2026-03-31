@@ -62,7 +62,7 @@ func handleConnection(conn net.Conn) {
 				conn.Write([]byte("+OK\r\n"))
 			}else if strings.ToUpper(args[0]) == " GET"{
 				if val, ok := ans[args[1]]; ok {
-					conn.Write([]byte(fmt.Sprintf("%d\r\n%s\r\n", len(val), val)))
+					conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
 				}
 			}else {
 				conn.Write([]byte("+PONG\r\n"))
