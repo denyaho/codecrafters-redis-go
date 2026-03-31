@@ -30,6 +30,7 @@ func reply_pong(conn net.Conn) {
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
+	ans := make(map[string]string)
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
@@ -53,7 +54,6 @@ func handleConnection(conn net.Conn) {
 				reader.ReadString('\n') // read the trailing \r\n
 				args[i] = string(buf)
 			}
-			ans := make(map[string]string)
 
 			if strings.ToUpper(args[0]) == "ECHO" {
 				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[1]), args[1])))
