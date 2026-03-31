@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"strings"
 	"strconv"
+	"io"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -41,13 +42,28 @@ func handleConnection(conn net.Conn) {
 			
 			args := make([]string, count)
 			for i := 0; i < count; i++ {
-				reader.ReadString('\n')
-				word, _ := reader.ReadString('\n')
-				args[i] = strings.TrimSpace(word)
+				line, _ := reader.ReadString('\n')
+				if line[0] != '$' {
+					continue;
+				}
+				wordcounter := strings.TrimSpace(line[1:])
+				size, _ := strconv.Atoi(wordcounter)
+				buf := make([]byte, size)
+				io.ReadFull(reader, buf)
+				reader.ReadString('\n') // read the trailing \r\n
+				args[i] = string(buf)
 			}
+			ans := make(map[string]string)
 
 			if strings.ToUpper(args[0]) == "ECHO" {
 				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[1]), args[1])))
+			}else if strings.ToUpper(args[0]) == "SET" {
+				ans[args[1]] = args[2]
+				conn.Write([]byte("+OK\r\n"))
+			}else if strings.ToUpper(args[0]) == " GET"{
+				if val, ok := ans[args[1]]; ok {
+					conn.Write([]byte(fmt.Sprintf("%d\r\n%s\r\n", len(val), val)))
+				}
 			}else {
 				conn.Write([]byte("+PONG\r\n"))
 			}
