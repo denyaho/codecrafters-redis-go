@@ -78,7 +78,7 @@ func handleConnection(conn net.Conn) {
 		data: make(map[string]Item),
 		mu: sync.RWMutex{},
 	}
-
+	elem := []string{}
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
@@ -124,6 +124,9 @@ func handleConnection(conn net.Conn) {
 				} else {
 					conn.Write([]byte("$-1\r\n"))
 				}
+			}else if strings.ToUpper(args[0]) == "RPUSH" {
+				elem = append(elem, args[2])
+				conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
 			}else {
 				conn.Write([]byte("+PONG\r\n"))
 			}
