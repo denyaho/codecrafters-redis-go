@@ -115,11 +115,11 @@ func handleConnection(conn net.Conn) {
 			if strings.ToUpper(args[0]) == "ECHO" {
 				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[1]), args[1])))
 			}else if strings.ToUpper(args[0]) == "SET" {
-				if len(args) > 4 && strings.ToUpper(args[3]) == "PX" {
+				if len(args) == 4 && strings.ToUpper(args[3]) == "PX" {
 					expireMs, _ := strconv.Atoi(args[4])
 					expireAt := time.Duration(expireMs) * time.Millisecond
 					emap.Set(args[1], args[2], expireAt)
-				}else if len(args) > 4 && strings.ToUpper(args[3]) == "EX" {
+				}else if len(args) == 4 && strings.ToUpper(args[3]) == "EX" {
 					expireS, _ := strconv.Atoi(args[4])
 					expireAt := time.Duration(expireS) * time.Second
 					emap.Set(args[1], args[2], expireAt)
