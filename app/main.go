@@ -52,20 +52,11 @@ func (m *ExpireMap) Get(key string) (string, bool) {
 		return "", false
 	}
 	if item.expireAt != 0 && item.expireAt < time.Now().UnixNano() {
+		delete(m.data, key)
 		return "", false
 	}
 	return item.value, true
 }
-
-func (m *ExpireMap) Delete(key string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if _, ok :=m.data[key]; ok {
-		delete(m.data, key)
-	}
-}
-
 
 func reply_pong(conn net.Conn) {
 	defer conn.Close()
@@ -115,11 +106,11 @@ func handleConnection(conn net.Conn) {
 			if strings.ToUpper(args[0]) == "ECHO" {
 				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args[1]), args[1])))
 			}else if strings.ToUpper(args[0]) == "SET" {
-				if len(args) == 4 && strings.ToUpper(args[3]) == "PX" {
+				if len(args) >= 4 && strings.ToUpper(args[3]) == "PX" {
 					expireMs, _ := strconv.Atoi(args[4])
 					expireAt := time.Duration(expireMs) * time.Millisecond
 					emap.Set(args[1], args[2], expireAt)
-				}else if len(args) == 4 && strings.ToUpper(args[3]) == "EX" {
+				}else if len(args) >= 4 && strings.ToUpper(args[3]) == "EX" {
 					expireS, _ := strconv.Atoi(args[4])
 					expireAt := time.Duration(expireS) * time.Second
 					emap.Set(args[1], args[2], expireAt)
@@ -131,7 +122,6 @@ func handleConnection(conn net.Conn) {
 				if val, ok := emap.Get(args[1]); ok {
 					conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
 				} else {
-					emap.Delete(args[1])
 					conn.Write([]byte("$-1\r\n"))
 				}
 			}else {
