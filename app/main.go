@@ -125,15 +125,10 @@ func handleConnection(conn net.Conn) {
 					conn.Write([]byte("$-1\r\n"))
 				}
 			}else if strings.ToUpper(args[0]) == "RPUSH" {
-				if strings.ToUpper(args[1]) == "LIST_KEY"{
-					elem = append(elem, args[2])
-					conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))	
-				}else if strings.ToUpper(args[1]) == "ANOTHER_LSIT" {
-					for i:=2; i < len(args); i++ {
-						elem = append(elem, args[i])
-					}
-					conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
+				for i:=2; i < len(args); i++ {
+					elem = append(elem, args[i])
 				}
+				conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
 			}else{
 				conn.Write([]byte("+PONG\r\n"))
 			}
