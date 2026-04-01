@@ -34,7 +34,7 @@ func (m *ExpireMap) Set(key, value string, expireAt time.Duration) {
 	if expireAt == 0 {
 		exp = 0
 	}else {
-		exp = time.Now().Add(expireAt).Unix()
+		exp = time.Now().Add(expireAt).UnixNano()
 	}
 
 	m.data[key] = Item{
@@ -51,7 +51,7 @@ func (m *ExpireMap) Get(key string) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	if item.expireAt != 0 && item.expireAt < time.Now().Unix() {
+	if item.expireAt != 0 && item.expireAt < time.Now().UnixNano() {
 		return "", false
 	}
 	return item.value, true
