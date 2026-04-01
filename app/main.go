@@ -133,7 +133,8 @@ func handleConnection(conn net.Conn) {
 						elem = append(elem, args[i])
 					}
 					conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
-			}else {
+				}
+			}else{
 				conn.Write([]byte("+PONG\r\n"))
 			}
 		}
