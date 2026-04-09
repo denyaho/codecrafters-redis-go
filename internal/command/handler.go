@@ -50,6 +50,31 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				elem = append(elem, args[i])
 			}
 			conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
+		case "LRANGE":
+			if len(elem) <= 0 {
+				conn.Write([]byte("*0\r\n"))
+				continue
+			}
+			start := args[2]
+			end := args[3]
+			startIndex, _ := strconv.Atoi(start)
+			endIndex, _ := strconv.Atoi(end)
+			if startIndex >= len(elem) {
+				conn.Write([]byte("*0\r\n"))
+				continue
+			}
+			if endIndex >= len(elem) {
+				endIndex = len(elem) - 1
+			}
+			if startIndex > endIndex {
+				conn.Write([]byte("*0\r\n"))
+				continue
+			}
+			idx := 0
+			for i := startIndex; i <= endIndex; i++ {
+				conn.Write([]byte(fmt.Sprintf("%d) %s\r\n", idx, elem[i])))
+				idx++
+			}
 		default:
 				conn.Write([]byte("+PONG\r\n"))
 		}
