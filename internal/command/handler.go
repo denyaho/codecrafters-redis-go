@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bufio"
-	"container/list"
 	"fmt"
 	"net"
 	"strconv"
