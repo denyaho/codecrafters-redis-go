@@ -51,8 +51,10 @@ func (m *ExpireMap) Get(key string) (string, bool) {
 func (m *ExpireMap) Rpush(key string, value ...string) int {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.lists[key] = append(m.lists[key], value...)
-	return len(m.lists[key])
+	list := m.lists[key]
+	list = append(list, value...)
+	m.lists[key] = list
+	return len(list)
 }
 
 func (m *ExpireMap) Lrange(key string, start, stop int) []string {
