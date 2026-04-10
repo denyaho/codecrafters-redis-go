@@ -84,5 +84,5 @@ type Store interface {
 }
 
 func NewExpireMap() *ExpireMap {
-	return &ExpireMap{data: make(map[string]Item)}
+	return &ExpireMap{data: make(map[string]Item), lists: make(map[string][]string)}
 }
