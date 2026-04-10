@@ -58,7 +58,7 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				continue
 			}
 			response := []byte(fmt.Sprintf("*%d\r\n", len(elem)))
-			for i := startIndex; i <= endIndex; i++ {
+			for i := 0; i < len(elem); i++ {
 				word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(elem[i]), elem[i]))
 				response = append(response, word...)
 			}
