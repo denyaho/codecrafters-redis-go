@@ -107,6 +107,17 @@ func (m *ExpireMap) Llen(key string) int {
 	return len(list)
 }
 
+func (m *ExpireMap) Lpop(key string) (string, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	list, ok := m.lists[key]
+	if !ok || len(list) == 0{
+		return "", false
+	}
+	m.lists[key] = m.lists[key][1:]
+	return list[0], true
+}
+
 type Store interface {
 	Set(key, value string, expireAt time.Duration)
 	Get(key string) (string, bool)
@@ -114,6 +125,7 @@ type Store interface {
 	Lrange(key string, start, stop int) []string
 	LPush(key string, value ...string) int
 	Llen(key string) int
+	Lpop(key string) (string, bool)
 }
 
 func NewExpireMap() *ExpireMap {
