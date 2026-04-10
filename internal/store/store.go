@@ -64,6 +64,12 @@ func (m *ExpireMap) Lrange(key string, start, stop int) []string {
 	if !ok {
 		return []string{}
 	}
+	if start < 0 {
+		start = len(list) + start
+	}
+	if stop < 0 {
+		stop = len(list) + stop
+	}
 	if start >= len(list) {
 		return []string{}
 	}
