@@ -45,7 +45,7 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				conn.Write([]byte("$-1\r\n"))
 			}
 		case "RPUSH":
-			list_length := st.Rpush(args[2], args[3:]...)
+			list_length := st.Rpush(args[1], args[2:]...)
 			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
 		case "LRANGE":
 			start := args[2]
