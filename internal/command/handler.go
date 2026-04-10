@@ -2,14 +2,15 @@ package handler
 
 import (
 	"bufio"
+	"container/list"
 	"fmt"
 	"net"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
 
@@ -65,6 +66,9 @@ func HandleConnection(conn net.Conn, st store.Store) {
 			conn.Write(response)
 		case "LPUSH":
 			list_length := st.LPush(args[1], args[2:]...)
+			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
+		case "LLEN":
+			list_length := st.Llen(args[1])
 			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
 		default:
 				conn.Write([]byte("+PONG\r\n"))
