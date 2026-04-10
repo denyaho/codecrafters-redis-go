@@ -70,11 +70,12 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				conn.Write([]byte("*0\r\n"))
 				continue
 			}
-			idx := 0
+			response := []byte(fmt.Sprintf("*%d\r\n", endIndex - startIndex + 1))
 			for i := startIndex; i <= endIndex; i++ {
-				conn.Write([]byte(fmt.Sprintf("%d) %s\r\n", idx, elem[i])))
-				idx++
+				word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(elem[i]), elem[i]))
+				response = append(response, word...)
 			}
+			conn.Write(response)
 		default:
 				conn.Write([]byte("+PONG\r\n"))
 		}
