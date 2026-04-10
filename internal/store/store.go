@@ -57,6 +57,15 @@ func (m *ExpireMap) Rpush(key string, value ...string) int {
 	return len(list)
 }
 
+func (m *ExpireMap) LPush(key string, value ...string) int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, v := range value {
+		m.lists[key] = append([]string{v}, m.lists[key]...)
+	}
+	return len(m.lists[key])
+}
+
 func (m *ExpireMap) Lrange(key string, start, stop int) []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -93,6 +102,7 @@ type Store interface {
 	Get(key string) (string, bool)
 	Rpush(key string, value ...string) int
 	Lrange(key string, start, stop int) []string
+	LPush(key string, value ...string) int
 }
 
 func NewExpireMap() *ExpireMap {

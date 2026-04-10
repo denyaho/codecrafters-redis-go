@@ -63,6 +63,9 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				response = append(response, word...)
 			}
 			conn.Write(response)
+		case "LPUSH":
+			list_length := st.LPush(args[1], args[2:]...)
+			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
 		default:
 				conn.Write([]byte("+PONG\r\n"))
 		}
