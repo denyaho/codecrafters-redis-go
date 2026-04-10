@@ -16,7 +16,6 @@ import (
 func HandleConnection(conn net.Conn, st store.Store) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
-	elem := []string{}
 	for {
 		args, err :=resp.Parse(reader)
 		if err != nil {
@@ -46,31 +45,19 @@ func HandleConnection(conn net.Conn, st store.Store) {
 				conn.Write([]byte("$-1\r\n"))
 			}
 		case "RPUSH":
-			for i:=2; i < len(args); i++ {
-				elem = append(elem, args[i])
-			}
-			conn.Write([]byte(fmt.Sprintf(":%d\r\n", len(elem))))
+			list_length := st.Rpush(args[1], args[2:]...)
+			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
 		case "LRANGE":
-			if len(elem) <= 0 {
-				conn.Write([]byte("*0\r\n"))
-				continue
-			}
 			start := args[2]
 			end := args[3]
 			startIndex, _ := strconv.Atoi(start)
 			endIndex, _ := strconv.Atoi(end)
-			if startIndex >= len(elem) {
+			elem := st.Lrange(args[1], startIndex, endIndex)
+			if len(elem) == 0 {
 				conn.Write([]byte("*0\r\n"))
 				continue
 			}
-			if endIndex >= len(elem) {
-				endIndex = len(elem) - 1
-			}
-			if startIndex > endIndex {
-				conn.Write([]byte("*0\r\n"))
-				continue
-			}
-			response := []byte(fmt.Sprintf("*%d\r\n", endIndex - startIndex + 1))
+			response := []byte(fmt.Sprintf("*%d\r\n", len(elem)))
 			for i := startIndex; i <= endIndex; i++ {
 				word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(elem[i]), elem[i]))
 				response = append(response, word...)

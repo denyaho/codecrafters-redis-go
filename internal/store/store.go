@@ -3,6 +3,7 @@ package store
 import (
 	"sync"
 	"time"
+	"strconv"
 )
 
 type Item struct{
@@ -12,6 +13,7 @@ type Item struct{
 
 type ExpireMap struct {
 	data map[string]Item
+	lists map[string][]string
 	mu sync.RWMutex
 }
 
@@ -47,9 +49,37 @@ func (m *ExpireMap) Get(key string) (string, bool) {
 	return item.value, true
 }
 
+func (m *ExpireMap) Rpush(key string, value ...string) int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.lists[key] = append(m.lists[key], value...)
+	return len(m.lists[key])
+}
+
+func (m *ExpireMap) Lrange(key string, start, stop int) []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	list, ok := m.lists[key]
+	if !ok {
+		return []string{}
+	}
+	if start >= len(list) {
+		return []string{}
+	}
+	if stop >= len(list) {
+		stop = len(list) - 1
+	}
+	if start > stop {
+		return []string{}
+	}
+	return list[start:stop+1]
+}
+
 type Store interface {
 	Set(key, value string, expireAt time.Duration)
 	Get(key string) (string, bool)
+	Rpush(key string, value ...string) int
+	Lrange(key string, start, stop int) []string
 }
 
 func NewExpireMap() *ExpireMap {
