@@ -66,6 +66,22 @@ func (m *ExpireMap) LPush(key string, value ...string) int {
 	return len(m.lists[key])
 }
 
+func resolveIndex(start, stop, length int) (int, int) {
+	if start < 0 {
+		start = length * start
+		if start < 0 {
+			start = 0
+		}
+	}
+	if stop < 0 {
+		stop = length + stop
+		if stop < 0 {
+			stop = 0
+		}
+	}
+	return start, stop
+}
+
 func (m *ExpireMap) Lrange(key string, start, stop int) []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -73,18 +89,7 @@ func (m *ExpireMap) Lrange(key string, start, stop int) []string {
 	if !ok {
 		return []string{}
 	}
-	if start < 0 {
-		start = len(list) + start
-		if start < 0 {
-			start = 0
-		}
-	}
-	if stop < 0 {
-		stop = len(list) + stop
-		if stop < 0 {
-			stop = 0
-		}
-	}
+	start, stop = resolveIndex(start, stop, len(list))
 	if start >= len(list) {
 		return []string{}
 	}

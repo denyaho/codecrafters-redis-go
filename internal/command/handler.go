@@ -70,10 +70,21 @@ func HandleConnection(conn net.Conn, st store.Store) {
 			list_length := st.Llen(args[1])
 			conn.Write([]byte(fmt.Sprintf(":%d\r\n", list_length)))
 		case "LPOP":
-			if val, ok := st.Lpop(args[1]); ok {
-				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
-			} else {
-				conn.Write([]byte("$-1\r\n"))
+			if len(args) == 2{
+				if val, ok := st.Lpop(args[1]); ok {
+					conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
+				} else {
+					conn.Write([]byte("$-1\r\n"))
+				}
+			}else {
+				count, _ := strconv.Atoi(args[2])
+				for i := 0; i < count; i++ {
+					if val, ok := st.Lpop(args[1]); ok {
+						conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
+					} else {
+						conn.Write([]byte("$-1\r\n"))
+					}
+				}
 			}
 		default:
 				conn.Write([]byte("+PONG\r\n"))
