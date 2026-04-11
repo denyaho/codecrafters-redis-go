@@ -10,6 +10,11 @@ type Item struct{
 	expireAt int64
 }
 
+type Lists struct {
+	data_list []string
+	block int64
+}
+
 type ExpireMap struct {
 	data map[string]Item
 	lists map[string][]string
@@ -122,6 +127,10 @@ func (m *ExpireMap) Lpop(key string) (string, bool) {
 	m.lists[key] = m.lists[key][1:]
 	return list[0], true
 }
+
+// func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
+
+// }
 
 type Store interface {
 	Set(key, value string, expireAt time.Duration)
