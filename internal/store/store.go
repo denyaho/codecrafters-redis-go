@@ -68,7 +68,7 @@ func (m *ExpireMap) LPush(key string, value ...string) int {
 
 func resolveIndex(start, stop, length int) (int, int) {
 	if start < 0 {
-		start = length * start
+		start = length + start
 		if start < 0 {
 			start = 0
 		}
