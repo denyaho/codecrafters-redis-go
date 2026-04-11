@@ -77,13 +77,25 @@ func HandleConnection(conn net.Conn, st store.Store) {
 					conn.Write([]byte("$-1\r\n"))
 				}
 			}else {
+				popped_word := []string{}
 				count, _ := strconv.Atoi(args[2])
 				for i := 0; i < count; i++ {
 					if val, ok := st.Lpop(args[1]); ok {
-						conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)))
+						popped_word = append(popped_word, val)
 					} else {
 						conn.Write([]byte("$-1\r\n"))
+						break
 					}
+				}
+				if len(popped_word) == count {
+					response := []byte(fmt.Sprintf("*%d\r\n", len(popped_word)))
+					for i := 0; i < len(popped_word); i++ {
+						word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(popped_word[i]), popped_word[i]))
+						response = append(response, word...)
+					}
+					conn.Write(response)
+				} else {
+					conn.Write([]byte("$-1\r\n"))
 				}
 			}
 		default:
