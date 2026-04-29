@@ -117,7 +117,7 @@ func handleLpop(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleBLpop(st *store.ExpireMap, args []string) []byte {
-	fmt.println("handling BLPOP command")
+	fmt.Println("handling BLPOP command")
 	if len(args) < 3 {
 		return []byte("-ERR wrong number of arguments for 'BLPOP' command\r\n")
 	}
