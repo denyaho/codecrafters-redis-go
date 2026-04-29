@@ -122,8 +122,8 @@ func handleBLpop(st *store.ExpireMap, args []string) []byte {
 	}
 	timeoutSec, _ := strconv.Atoi(args[2])
 	timeout := time.Duration(timeoutSec) * time.Second
-	response, ok := st.BLPop(args[1], timeout)
-	if !ok && response == "timeout" {
+	response, ok, istimeout := st.BLPop(args[1], timeout)
+	if istimeout {
 		return []byte("*-1\r\n")
 	} else if !ok {
 		return []byte("$-1\r\n")

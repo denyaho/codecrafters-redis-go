@@ -189,14 +189,14 @@ func (m *ExpireMap) Lpop(key string) (string, bool, error) {
 	return list[0], true, nil
 }
 
-func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
+func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool, bool) {
 	m.mu.Lock()
 	list, _ := m.data[key].value.([]string)
 	if len(list) > 0 {
 		val := list[0]
 		m.data[key] = Item{value: list[1:]}
 		m.mu.Unlock()
-		return val, true
+		return val, true, false
 	}
 
 	ch := make(chan struct{}, 1)
@@ -210,17 +210,17 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
 	select {
 	case <-ch:
 	case <-timer:
-		return "timeout",false
+		return "",false, true
 	}
 	m.mu.Lock()
 	list, _ = m.data[key].value.([]string)
 	if len(list) == 0 {
 		m.mu.Unlock()
-		return "", false
+		return "", false, false
 	}
 	m.data[key] = Item{value: list[1:]}
 	m.mu.Unlock()
-	return list[0], true
+	return list[0], true, false
 }
 
 type Store interface {
