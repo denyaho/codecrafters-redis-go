@@ -210,7 +210,7 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
 	select {
 	case <-ch:
 	case <-timer:
-		return "",false
+		return "timeout",false
 	}
 	m.mu.Lock()
 	list, _ = m.data[key].value.([]string)
