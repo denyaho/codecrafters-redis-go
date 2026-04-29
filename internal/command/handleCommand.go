@@ -121,7 +121,7 @@ func handleBLpop(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 3 {
 		return []byte("-ERR wrong number of arguments for 'BLPOP' command\r\n")
 	}
-	timeoutSec, _ := strconv.Atoi(args[2])
+	timeoutSec, _ := strconv.ParseFloat(args[2], 64)
 	timeout := time.Duration(timeoutSec) * time.Millisecond
 	fmt.Printf("BLPOP timeout duration: %v\n", timeout)
 	response, ok, istimeout := st.BLPop(args[1], timeout)
