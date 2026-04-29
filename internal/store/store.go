@@ -66,7 +66,7 @@ func (m *ExpireMap) Rpush(key string, values ...string) (int, error) {
 	if exist && !ok {
 		m.mu.Unlock()
 		return 0, ErrWrongType
-	} else{
+	} else if !exist {
 		list = []string{}
 	}
 	for _, v := range values {
@@ -89,13 +89,11 @@ func (m *ExpireMap) Rpush(key string, values ...string) (int, error) {
 func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 	m.mu.Lock()
 	item, exist := m.data[key]
-	fmt.Printf("list before push 1: %v\n", item.value)
 	list, ok := item.value.([]string)
-	fmt.Printf("list before push 2: %v\n", list)
 	if exist && !ok {
 		m.mu.Unlock()
 		return 0, ErrWrongType
-	} else{
+	}else if !exist {
 		list = []string{}
 	}
 	for _, v := range values {
