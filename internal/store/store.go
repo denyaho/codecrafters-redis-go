@@ -97,12 +97,12 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 		list = []string{}
 	}
 	for _, v := range values {
-		fmt.Printf("pushing %s to list\n", v)
 		list = append([]string{v}, list...)
 	}
 	fmt.Printf("list after push: %v\n", list)
 	m.data[key] = Item{value: list, expireAt: item.expireAt}
 	length := len(list)
+	fmt.Printf("list after push: %v\n", m.data[key])
 
 	ch := m.signals[key]
 	m.mu.Unlock()
