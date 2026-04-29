@@ -17,6 +17,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 	var response []byte
 	for {
 		args, err :=resp.Parse(reader)
+		fmt.Printf("Received command: %v\n", args)
 		if err != nil {
 			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 			conn.Write(response)
