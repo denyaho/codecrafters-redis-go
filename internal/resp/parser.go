@@ -43,7 +43,7 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 	if len(message) == 0 {
 		return nil, err
 	}
-	fmt.Printf("Received message: %s", message)
+	fmt.Printf("Received message: %c, %c\n", message[0], message[1])
 	switch message[0] {
 		case '+':
 			return []string{strings.TrimSpace(message[1:])}, nil
