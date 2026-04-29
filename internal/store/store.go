@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 	"errors"
-	"fmt"
 )
 
 type Item struct{
@@ -101,7 +100,6 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 	}
 	m.data[key] = Item{value: list, expireAt: item.expireAt}
 	length := len(list)
-	fmt.Printf("list after push: %v\n", m.data[key])
 
 	ch := m.signals[key]
 	m.mu.Unlock()
@@ -111,7 +109,6 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 		default:
 		}
 	}
-	fmt.Printf("%v", list)
 	return length, nil
 }
 
