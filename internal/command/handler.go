@@ -43,7 +43,6 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 		case "LPOP":	
 			response = handleLpop(st, args)
 		case "BLPOP":
-			fmt.Printf("Handling BLPOP command with")
 			response = handleBLpop(st, args)
 			fmt.Printf("BLPOP response: %s", response)
 		}
