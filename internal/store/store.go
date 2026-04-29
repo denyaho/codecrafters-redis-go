@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 	"errors"
+	"fmt"
 )
 
 type Item struct{
@@ -109,6 +110,7 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 		default:
 		}
 	}
+	fmt.Printf("%v", list)
 	return length, nil
 }
 
