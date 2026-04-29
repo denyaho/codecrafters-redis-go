@@ -30,7 +30,7 @@ func parseArray(reader *bufio.Reader, message string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse bulk string: %v", err)
 		}
-		args = append(args, bulk_string)
+		args[i] = bulk_string
 	}
 	return args, nil
 }
