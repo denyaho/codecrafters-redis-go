@@ -23,6 +23,7 @@ func parseBulkString(reader *bufio.Reader) (string, error) {
 
 func parseArray(reader *bufio.Reader, message string) ([]string, error) {
 	count, _ :=strconv.Atoi(message[1:])
+	fmt.Printf("Array count: %d\n", count)
 	args := make([]string, count)
 	for i := 0; i < count; i++{
 		bulk_string, err := parseBulkString(reader)
