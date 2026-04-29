@@ -65,6 +65,8 @@ func (m *ExpireMap) Rpush(key string, values ...string) (int, error) {
 	if exist && !ok {
 		m.mu.Unlock()
 		return 0, ErrWrongType
+	} else{
+		list = []string{}
 	}
 	for _, v := range values {
 		list = append(list, v)
@@ -90,13 +92,15 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 	if exist && !ok {
 		m.mu.Unlock()
 		return 0, ErrWrongType
+	} else{
+		list = []string{}
 	}
 	for _, v := range values {
 		list = append([]string{v}, list...)
 	}
 	m.data[key] = Item{value: list, expireAt: item.expireAt}
 	length := len(list)
-	
+
 	ch := m.signals[key]
 	m.mu.Unlock()
 	if ch != nil {
