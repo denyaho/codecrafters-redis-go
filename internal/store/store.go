@@ -97,6 +97,7 @@ func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
 		list = []string{}
 	}
 	for _, v := range values {
+		fmt.Printf("pushing %s to list\n", v)
 		list = append([]string{v}, list...)
 	}
 	m.data[key] = Item{value: list, expireAt: item.expireAt}
