@@ -21,9 +21,7 @@ func parseBulkString(reader *bufio.Reader) (string, error) {
 	return string(buf), nil
 }
 
-func parseArray(reader *bufio.Reader, message string) ([]string, error) {
-	count, _ :=strconv.Atoi(message[1:])
-	fmt.Printf("Array count: %d\n", count)
+func parseArray(reader *bufio.Reader, count int ) ([]string, error) {
 	args := make([]string, count)
 	for i := 0; i < count; i++{
 		bulk_string, err := parseBulkString(reader)
@@ -48,7 +46,9 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 		case '+':
 			return []string{strings.TrimSpace(message[1:])}, nil
 		case '*':
-			return parseArray(reader, message)
+			countStr := strings.TrimSpace(message[1:])
+			count, _ := strconv.Atoi(countStr)
+			return parseArray(reader, count)
 		default:
 			return nil, fmt.Errorf("unexpected message type: %c", message[0])
 	}
