@@ -3,23 +3,20 @@ package store
 import (
 	"sync"
 	"time"
+	"errors"
 )
 
 type Item struct{
-	value string
+	value any
 	expireAt int64
-}
-
-type Lists struct {
-	data_list []string
-	block int64
 }
 
 type ExpireMap struct {
 	data map[string]Item
-	lists map[string][]string
 	mu sync.RWMutex
+	signals map[string]chan struct{}
 }
+
 
 func (m *ExpireMap) Set(key, value string, expireAt time.Duration) {
 	m.mu.Lock()
@@ -38,7 +35,7 @@ func (m *ExpireMap) Set(key, value string, expireAt time.Duration) {
 	}
 }
 
-func (m *ExpireMap) Get(key string) (string, bool) {
+func (m *ExpireMap) Get(key string) (any, bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -46,29 +43,69 @@ func (m *ExpireMap) Get(key string) (string, bool) {
 	if !ok {
 		return "", false
 	}
+	str, ok := item.value.(string)
+	if !ok {
+		return "", false
+	}
+
 	if item.expireAt != 0 && item.expireAt < time.Now().UnixNano() {
 		delete(m.data, key)
 		return "", false
 	}
-	return item.value, true
+	return str, true
 }
 
-func (m *ExpireMap) Rpush(key string, value ...string) int {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	list := m.lists[key]
-	list = append(list, value...)
-	m.lists[key] = list
-	return len(list)
-}
+var ErrWrongType = errors.New("WRONGTYPE Operation against a key holding the wrong kind of value")
 
-func (m *ExpireMap) LPush(key string, value ...string) int {
+func (m *ExpireMap) Rpush(key string, values ...string) (int, error) {
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	for _, v := range value {
-		m.lists[key] = append([]string{v}, m.lists[key]...)
+
+	item, exist := m.data[key]
+	list, ok := item.value.([]string)
+	if exist && !ok {
+		m.mu.Unlock()
+		return 0, ErrWrongType
 	}
-	return len(m.lists[key])
+	for _, v := range values {
+		list = append(list, v)
+	}
+	m.data[key] = Item{value: list, expireAt: item.expireAt}
+	length := len(list)
+
+	ch := m.signals[key]
+	m.mu.Unlock()
+	if ch != nil {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}	
+	}
+	return length, nil
+}
+
+func (m *ExpireMap) LPush(key string, values ...string) (int, error) {
+	m.mu.Lock()
+	item, exist := m.data[key]
+	list, ok := item.value.([]string)
+	if exist && !ok {
+		m.mu.Unlock()
+		return 0, ErrWrongType
+	}
+	for _, v := range values {
+		list = append([]string{v}, list...)
+	}
+	m.data[key] = Item{value: list, expireAt: item.expireAt}
+	length := len(list)
+	
+	ch := m.signals[key]
+	m.mu.Unlock()
+	if ch != nil {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
+	return length, nil
 }
 
 func resolveIndex(start, stop, length int) (int, int) {
@@ -87,50 +124,100 @@ func resolveIndex(start, stop, length int) (int, int) {
 	return start, stop
 }
 
-func (m *ExpireMap) Lrange(key string, start, stop int) []string {
+func (m *ExpireMap) Lrange(key string, start, stop int) ([]string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	list, ok := m.lists[key]
+	item, exist := m.data[key]
+	if !exist {
+		return []string{}, nil
+	}
+	list, ok := item.value.([]string)
 	if !ok {
-		return []string{}
+		return []string{}, ErrWrongType
 	}
 	start, stop = resolveIndex(start, stop, len(list))
 	if start >= len(list) {
-		return []string{}
+		return []string{}, nil
 	}
 	if stop >= len(list) {
 		stop = len(list) - 1
 	}
 	if start > stop {
-		return []string{}
+		return []string{}, nil
 	}
-	return list[start:stop+1]
+	return list[start:stop+1], nil
 }
 
-func (m *ExpireMap) Llen(key string) int {
+func (m *ExpireMap) Llen(key string) (int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	list, ok := m.lists[key]
-	if !ok {
-		return 0
+	item, exist := m.data[key]
+	if !exist {
+		return 0, nil
 	}
-	return len(list)
+	list, ok := item.value.([]string)
+	if !ok {
+		return 0, ErrWrongType
+	}
+	if list == nil {
+		return 0, nil
+	}
+	return len(list), nil
 }
 
-func (m *ExpireMap) Lpop(key string) (string, bool) {
+
+
+func (m *ExpireMap) Lpop(key string) (string, bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	list, ok := m.lists[key]
-	if !ok || len(list) == 0{
-		return "", false
+	item, exist := m.data[key]
+	if !exist {
+		return "", false, nil // key does not exist
 	}
-	m.lists[key] = m.lists[key][1:]
-	return list[0], true
+	list, ok := item.value.([]string)
+	if !ok {
+		return "", false, ErrWrongType
+	}
+	if len(list) == 0 {
+		return "", false, nil // list is empty
+	}
+	m.data[key] = Item{value: list[1:], expireAt: item.expireAt}
+	return list[0], true, nil
 }
 
-// func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
+func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
+	m.mu.Lock()
+	list, _ := m.data[key].value.([]string)
+	if len(list) > 0 {
+		val := list[0]
+		m.data[key] = Item{value: list[1:]}
+		m.mu.Unlock()
+		return val, true
+	}
 
-// }
+	ch := make(chan struct{}, 1)
+	m.signals[key] = ch
+	m.mu.Unlock()
+
+	var timer <- chan time.Time
+	if timeout > 0 {
+		timer = time.After(timeout)
+	}
+	select {
+	case <-ch:
+	case <-timer:
+		return "",false
+	}
+	m.mu.Lock()
+	list, _ = m.data[key].value.([]string)
+	if len(list) == 0 {
+		m.mu.Unlock()
+		return "", false
+	}
+	m.data[key] = Item{value: list[1:]}
+	m.mu.Unlock()
+	return list[0], true
+}
 
 type Store interface {
 	Set(key, value string, expireAt time.Duration)
@@ -140,8 +227,9 @@ type Store interface {
 	LPush(key string, value ...string) int
 	Llen(key string) int
 	Lpop(key string) (string, bool)
+	BLPop(key string, timeout time.Duration) (string, bool)
 }
 
 func NewExpireMap() *ExpireMap {
-	return &ExpireMap{data: make(map[string]Item), lists: make(map[string][]string)}
+	return &ExpireMap{data: make(map[string]Item), signals: make(map[string]chan struct{})}
 }

@@ -9,21 +9,34 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
-func StartServer(port string, address string) {
+type Server struct {
+	addr string
+	st   *store.ExpireMap
+}
 
+func New(port, address string) *Server {
 	full_address := address + ":" + port
-	l, err := net.Listen("tcp", full_address)
+	return &Server{
+		addr: full_address,
+		st: store.NewExpireMap(),
+	}
+}
+
+func (s *Server) StartServer() {
+
+	l, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		fmt.Printf("Failed to bind to port %s: %v\n", port, err)
+		fmt.Printf("Failed to bind to port %s: %v\n", s.addr, err)
 		os.Exit(1)
 	}
-	st := store.NewExpireMap()
 	for {
 		conn, err := l.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
 		}
-		go handler.HandleConnection(conn, st)
+		go func(c net.Conn) {
+			handler.HandleConnection(c, s.st)
+		}(conn)
 	}
 }
