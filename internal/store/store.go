@@ -199,6 +199,7 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
 		val := list[0]
 		m.data[key] = Item{value: list[1:]}
 		m.mu.Unlock()
+		fmt.Printf("popped %s from list\n", val)
 		return val, true
 	}
 
@@ -222,6 +223,7 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool) {
 		return "", false
 	}
 	m.data[key] = Item{value: list[1:]}
+	fmt.Printf("popped %s from list\n", list[0])
 	m.mu.Unlock()
 	return list[0], true
 }
