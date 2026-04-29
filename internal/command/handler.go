@@ -22,6 +22,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			conn.Write(response)
 			return
 		}
+		fmt.Printf("Received command: %v\n", args)
 		switch strings.ToUpper(args[0]) {
 		case "PING":
 			response = handlePing()
