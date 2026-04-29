@@ -204,7 +204,6 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool, bool
 	m.signals[key] = ch
 	m.mu.Unlock()
 
-	fmt.Printf("timeout duration: %v\n", timeout)
 	var timer <- chan time.Time
 	if timeout > 0 {
 		timer = time.After(timeout)
