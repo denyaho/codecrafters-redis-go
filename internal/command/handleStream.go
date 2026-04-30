@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
-	"github.com/go-playground/locales/ms"
 )
 
 type StreamEntry struct {
