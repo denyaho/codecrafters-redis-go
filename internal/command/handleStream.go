@@ -34,6 +34,7 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	}
 
 	key := args[1]
+	fmt.Printf("key is %s\n", key)
 	entryID := args[2]
 	pairs := make(map[string]string)
 	for i := 3; i < len(args); i += 2 {
