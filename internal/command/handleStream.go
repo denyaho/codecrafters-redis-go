@@ -83,7 +83,11 @@ func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) 
 			return "", fmt.Errorf("invalid milliseconds in stream ID: %v", err)
 		}
 		if prevID == ""{
-			parts[1] = "0"
+			if msInt == 0{
+				parts[1] = "1"
+			} else {
+				parts[1] = "0"
+			}
 		} else {
 			prev_msInt, prev_sqInt, err := splitStreamID(prevID)
 			if err != nil {
@@ -92,7 +96,11 @@ func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) 
 			if msInt == prev_msInt {
 				parts[1] = strconv.FormatInt(prev_sqInt+1, 10)
 			} else if msInt != prev_msInt {
-				parts[1] = "0"
+				if msInt == 0{
+					parts[1] = "1"
+				} else {
+					parts[1] = "0"
+				}
 			}
 		}
 		rawID = parts[0] + "-" + parts[1]
