@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
@@ -73,6 +74,10 @@ func validateStreamID(current_id, prev_id string) (bool, error) {
 }
 
 func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) {
+	if rawID == "*"{
+		msInt := time.Now().UnixNano() / int64(time.Millisecond)
+		rawID = strconv.FormatInt(msInt, 10) + "-*"
+	}
 	parts := strings.Split(rawID, "-")
 	if len(parts) != 2 {
 		return "", fmt.Errorf("invalid stream ID format")
