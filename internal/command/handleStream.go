@@ -21,7 +21,7 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 		return []byte("+string\r\n")
 	case []string:
 		return []byte("+list\r\n")
-	case StreamEntry:
+	case []StreamEntry:
 		return []byte("+stream\r\n")
 	default:
 		return []byte("+none\r\n")
@@ -32,9 +32,7 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 4 || len(args[3:])%2 != 0 {
 		return []byte("-ERR wrong number of arguments for 'XADD' command\r\n")
 	}
-
 	key := args[1]
-	fmt.Printf("key is %s\n", key)
 	entryID := args[2]
 	pairs := make(map[string]string)
 	for i := 3; i < len(args); i += 2 {
@@ -42,11 +40,20 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 		value := args[i+1]
 		pairs[field] = value
 	}
-	entry := StreamEntry{
+	newEntry := StreamEntry{
 		ID: entryID,
 		value: pairs,
 	}
-	fmt.Printf("entry is %v\n", entry)
-	st.Set(key, entry, 0)
+
+	var stream []StreamEntry
+
+	value, ok := st.Get(key)
+	if ok {
+		if existingStream, exist := value.([]StreamEntry); exist {
+			stream = existingStream
+		}
+	}
+	stream = append(stream, newEntry)
+	st.Set(key, stream, 0)
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
 }

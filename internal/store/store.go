@@ -43,16 +43,12 @@ func (m *ExpireMap) Get(key string) (any, bool) {
 	if !ok {
 		return "", false
 	}
-	str, ok := item.value.(string)
-	if !ok {
-		return "", false
-	}
-
+	retValue := item.value
 	if item.expireAt != 0 && item.expireAt < time.Now().UnixNano() {
 		delete(m.data, key)
 		return "", false
 	}
-	return str, true
+	return retValue, true
 }
 
 var ErrWrongType = errors.New("WRONGTYPE Operation against a key holding the wrong kind of value")
