@@ -15,12 +15,8 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 		return []byte("-ERR wrong number of arguments for 'TYPE' command\r\n")
 	}
 	value, ok := st.Get(args[1])
-	if !ok {
-		return []byte("+none\r\n")
-	}
-	fmt.Printf("Value type for key '%s': %T\n", args[1], value)
-	switch value.(type) {
-	
+
+	switch value.(type) {	
 	case string:
 		return []byte("+string\r\n")
 	case []string:
