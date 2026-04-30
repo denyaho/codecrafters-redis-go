@@ -132,7 +132,7 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
-	fmt.Printf("Reached")
+	fmt.Printf("Resolved stream ID: %s\n", entryID)
 	_, err = validateStreamID(entryID, prevID)
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
