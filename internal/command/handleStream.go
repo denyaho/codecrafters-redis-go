@@ -46,6 +46,7 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 		ID: entryID,
 		value: pairs,
 	}
+	fmt.Printf("entry is %v\n", entry)
 	st.Set(key, entry, 0)
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
 }
