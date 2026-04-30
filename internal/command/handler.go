@@ -47,6 +47,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			fmt.Printf("BLPOP response: %s", response)
 		case "TYPE":
 			response = handleType(st, args)
+		case "XADD":
+			response = handleXAdd(st, args)
 		}
 		conn.Write(response)
 	}

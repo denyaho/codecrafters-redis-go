@@ -18,7 +18,7 @@ type ExpireMap struct {
 }
 
 
-func (m *ExpireMap) Set(key, value string, expireAt time.Duration) {
+func (m *ExpireMap) Set(key string, value any, expireAt time.Duration) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
