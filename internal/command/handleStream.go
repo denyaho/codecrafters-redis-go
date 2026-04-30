@@ -2,9 +2,11 @@ package handler
 
 import (
 	"fmt"
-	"github.com/codecrafters-io/redis-starter-go/internal/store"
-	"strings"
 	"strconv"
+	"strings"
+
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/go-playground/locales/ms"
 )
 
 type StreamEntry struct {
@@ -50,7 +52,7 @@ func splitStreamID(id string) (int64, int64, error) {
 	return msInt, sqInt, nil
 }
 
-func validateStreamID(key, current_id, prev_id string) (bool, error) {
+func validateStreamID(current_id, prev_id string) (bool, error) {
 	msInt, sqInt, err := splitStreamID(current_id)
 	if err != nil {
 		return false, err
@@ -71,6 +73,35 @@ func validateStreamID(key, current_id, prev_id string) (bool, error) {
 	return true, nil
 }
 
+func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) {
+	parts := strings.Split(rawID, "-")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("invalid stream ID format")
+	}
+	if parts[1] == "*"{
+		msInt, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			return "", fmt.Errorf("invalid milliseconds in stream ID: %v", err)
+		}
+		if prevID == ""{
+			parts[1] = "0"
+		} else {
+			prev_msInt, prev_sqInt, err := splitStreamID(prevID)
+			if err != nil {
+				return "", fmt.Errorf("invalid previous ID format: %v", err)
+			}
+			if msInt == prev_msInt {
+				parts[1] = strconv.FormatInt(prev_sqInt+1, 10)
+			} else if msInt != prev_msInt {
+				parts[1] = "0"
+			}
+		}
+		rawID = parts[0] + "-" + parts[1]
+	}
+	return rawID, nil
+}
+
+
 func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 4 || len(args[3:])%2 != 0 {
 		return []byte("-ERR wrong number of arguments for 'XADD' command\r\n")
@@ -90,21 +121,23 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	}
 
 	var stream []StreamEntry
-
 	value, ok := st.Get(key)
+	prevID := ""
 	if ok {
 		if existingStream, exist := value.([]StreamEntry); exist {
 			stream = existingStream
-			_, err := validateStreamID(key, entryID, stream[len(stream)-1].ID)
-			if err != nil {
-				return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
-			}
+			prevID = stream[len(stream)-1].ID
 		}
 	}
-	_, err := validateStreamID(key, entryID, "")
+	entryID, err := resolveStreamID(entryID, prevID, st)
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
+	_, err = validateStreamID(entryID, prevID)
+	if err != nil {
+		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+	}
+	newEntry.ID = entryID
 	stream = append(stream, newEntry)
 	st.Set(key, stream, 0)
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
