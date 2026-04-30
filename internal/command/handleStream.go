@@ -50,23 +50,22 @@ func splitStreamID(id string) (int64, int64, error) {
 	return msInt, sqInt, nil
 }
 
-func validateStreamID(st *store.ExpireMap, key string, StreamID string) (bool, error) {
-	msInt, sqInt, err := splitStreamID(StreamID)
+func validateStreamID(key, current_id, prev_id string) (bool, error) {
+	msInt, sqInt, err := splitStreamID(current_id)
 	if err != nil {
 		return false, err
 	}
+	if msInt == 0 && sqInt == 0 {
+		return false, fmt.Errorf("The ID specified in XADD must be greater than 0-0")
+	}
 
-	stream, _ := st.Get(key)
-	if stream == nil || stream.([]StreamEntry) == nil {
-		if msInt == 0 && sqInt == 0 {
-			return false, fmt.Errorf("The ID specified in XADD must be greater than 0-0")
+	if prev_id != ""{
+		prev_msInt, prev_sqInt, err := splitStreamID(prev_id)
+		if err != nil {
+			return false, fmt.Errorf("invalid previous ID format: %v", err)
 		}
-	} else {
-		entries := stream.([]StreamEntry)
-		lastStream := entries[len(entries)-1]
-		prev_msInt, prev_sqInt, _ := splitStreamID(lastStream.ID)
 		if msInt < prev_msInt || (msInt == prev_msInt && sqInt <= prev_sqInt) {
-			return false, fmt.Errorf("The ID specified in XADD is equal or smaller than the target stream top item")
+			return false, fmt.Errorf("The ID specified in XADD is equal or smaller than the provided previous ID")
 		}
 	}
 	return true, nil
@@ -96,9 +95,13 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if ok {
 		if existingStream, exist := value.([]StreamEntry); exist {
 			stream = existingStream
+			_, err := validateStreamID(key, entryID, stream[len(stream)-1].ID)
+			if err != nil {
+				return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+			}
 		}
 	}
-	_, err := validateStreamID(st, key, entryID)
+	_, err := validateStreamID(key, entryID, "")
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
