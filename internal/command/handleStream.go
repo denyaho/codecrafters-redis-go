@@ -23,6 +23,8 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 		return []byte("+string\r\n")
 	case []string:
 		return []byte("+list\r\n")
+	case StreamEntry:
+		return []byte("+stream\r\n")
 	default:
 		return []byte("+none\r\n")
 	}
