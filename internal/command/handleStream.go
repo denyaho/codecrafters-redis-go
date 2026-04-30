@@ -61,13 +61,13 @@ func validateStreamID(st *store.ExpireMap, key string, StreamID string) (bool, e
 		if msInt == 0 && sqInt == 0 {
 			return false, fmt.Errorf("The ID specified in XADD must be greater than 0-0")
 		}
-	}
-	entries := stream.([]StreamEntry)
-	lastStream := entries[len(entries)-1]
-
-	prev_msInt, prev_sqInt, _ := splitStreamID(lastStream.ID)
-	if msInt < prev_msInt || (msInt == prev_msInt && sqInt <= prev_sqInt) {
-		return false, fmt.Errorf("The ID specified in XADD is equal or smaller than the target stream top item")
+	} else {
+		entries := stream.([]StreamEntry)
+		lastStream := entries[len(entries)-1]
+		prev_msInt, prev_sqInt, _ := splitStreamID(lastStream.ID)
+		if msInt < prev_msInt || (msInt == prev_msInt && sqInt <= prev_sqInt) {
+			return false, fmt.Errorf("The ID specified in XADD is equal or smaller than the target stream top item")
+		}
 	}
 	return true, nil
 }
