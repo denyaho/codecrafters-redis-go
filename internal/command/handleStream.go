@@ -208,6 +208,9 @@ func _resolveRangeID(rawID string, isStart bool) (string, error) {
 	if rawID == "-" {
 		return "0-0", nil
 	}
+	if rawID == "+" {
+		return fmt.Sprintf("%d-%d", int64(math.MaxInt64), int64(math.MaxInt64)), nil
+	}
 	normID, err := _normalizeStreamID(rawID)
 	if err != nil {
 		return "", err
