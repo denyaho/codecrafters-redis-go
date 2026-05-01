@@ -253,7 +253,7 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	if start_idx <= end_idx {
 		stream_matched = stream[start_idx:end_idx+1]
 	}
-	fmt.Printf("will reply%v", stream_matched)
+	
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
 	for i := 0; i < len(stream_matched); i++ {
 		word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
@@ -288,7 +288,8 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 
 	start_idx := _getIndexOfStreamID(stream, entryID, true)
 	stream_matched = stream[start_idx:]
-	
+
+	fmt.Printf("will reply%v", stream_matched)
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
 	for i := 0; i < len(stream_matched); i++ {
 		word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
