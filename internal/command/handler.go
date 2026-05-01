@@ -50,6 +50,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			response = handleXAdd(st, args)
 		case "XRANGE":
 			response = handleXRange(st, args)
+		case "XREAD":
+			response = handleXRead(st, args)
 		}
 		conn.Write(response)
 	}
