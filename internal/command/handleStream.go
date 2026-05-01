@@ -204,6 +204,10 @@ func _getIndexOfStreamID(stream []StreamEntry, targetID string, isStart bool) in
 }
 
 func _resolveRangeID(rawID string, isStart bool) (string, error) {
+
+	if rawID == "-" {
+		return "0-0", nil
+	}
 	normID, err := _normalizeStreamID(rawID)
 	if err != nil {
 		return "", err
