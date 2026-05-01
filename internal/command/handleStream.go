@@ -249,9 +249,9 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	fmt.Printf("will reply%v", stream_matched)
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
 	for i := 0; i < len(stream_matched); i++ {
-		word := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched[i].value)))
-		id_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
-		word = append(word, id_word...)
+		word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
+		field_header := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched[i].value) * 2))
+		word = append(word, field_header...)
 		for field, value := range stream_matched[i].value {
 			field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
 			value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
@@ -260,5 +260,5 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 		}
 		response = append(response, word...)
 	}
-	return []byte(response)
+	return response
 }
