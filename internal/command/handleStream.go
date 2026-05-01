@@ -218,6 +218,8 @@ func _resolveRangeID(rawID string, isStart bool) (string, error) {
 	return normID, nil	
 }
 
+
+
 func handleXRange(st *store.ExpireMap, args []string) []byte {
 	if len(args) != 4{
 		return []byte("-ERR wrong number of arguments for 'XRANGE' command\r\n")
@@ -247,6 +249,12 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
 	for i := 0; i < len(stream_matched); i++ {
 		word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
+		for field, value := range stream_matched[i].value {
+			field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
+			value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
+			word = append(word, field_word...)
+			word = append(word, value_word...)
+		}
 		response = append(response, word...)
 	}
 	return []byte(response)
