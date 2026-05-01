@@ -247,8 +247,10 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 		stream_matched = stream[start_idx:end_idx+1]
 	}
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
-	for i := start_idx; i <= end_idx; i++ {
-		word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
+	for i := 0; i < len(stream_matched); i++ {
+		word := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched[i].value)))
+		id_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
+		word = append(word, id_word...)
 		for field, value := range stream_matched[i].value {
 			field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
 			value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
