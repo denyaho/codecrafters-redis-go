@@ -8,6 +8,7 @@ import (
 
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"golang.org/x/text/cases"
 )
 
 
@@ -48,6 +49,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			response = handleType(st, args)
 		case "XADD":
 			response = handleXAdd(st, args)
+		case "XRANGE":
+			response = handleXRange(st, args)
 		}
 		conn.Write(response)
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +36,7 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 	}
 }
 
-func splitStreamID(id string) (int64, int64, error) {
+func _splitStreamID(id string) (int64, int64, error) {
 	parts := strings.Split(id, "-")
 	if len(parts) != 2 {
 		return 0, 0, fmt.Errorf("invalid stream ID format")
@@ -52,8 +53,8 @@ func splitStreamID(id string) (int64, int64, error) {
 	return msInt, sqInt, nil
 }
 
-func validateStreamID(current_id, prev_id string) (bool, error) {
-	msInt, sqInt, err := splitStreamID(current_id)
+func _validateStreamID(current_id, prev_id string) (bool, error) {
+	msInt, sqInt, err := _splitStreamID(current_id)
 	if err != nil {
 		return false, err
 	}
@@ -62,7 +63,7 @@ func validateStreamID(current_id, prev_id string) (bool, error) {
 	}
 
 	if prev_id != ""{
-		prev_msInt, prev_sqInt, err := splitStreamID(prev_id)
+		prev_msInt, prev_sqInt, err := _splitStreamID(prev_id)
 		if err != nil {
 			return false, fmt.Errorf("invalid previous ID format: %v", err)
 		}
@@ -73,7 +74,7 @@ func validateStreamID(current_id, prev_id string) (bool, error) {
 	return true, nil
 }
 
-func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) {
+func _resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) {
 	if rawID == "*"{
 		msInt := time.Now().UnixNano() / int64(time.Millisecond)
 		rawID = strconv.FormatInt(msInt, 10) + "-*"
@@ -94,7 +95,7 @@ func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) 
 				parts[1] = "0"
 			}
 		} else {
-			prev_msInt, prev_sqInt, err := splitStreamID(prevID)
+			prev_msInt, prev_sqInt, err := _splitStreamID(prevID)
 			if err != nil {
 				return "", fmt.Errorf("invalid previous ID format: %v", err)
 			}
@@ -111,6 +112,18 @@ func resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error) 
 		rawID = parts[0] + "-" + parts[1]
 	}
 	return rawID, nil
+}
+
+func _getLastStream(st *store.ExpireMap, key string) ([]StreamEntry) {
+	var stream []StreamEntry
+
+	value, ok := st.Get(key)
+	if ok {
+		if existingStream, exist := value.([]StreamEntry); exist {
+			stream = existingStream
+		}
+	}
+	return stream
 }
 
 
@@ -131,22 +144,17 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 		ID: entryID,
 		value: pairs,
 	}
-
-	var stream []StreamEntry
-	value, ok := st.Get(key)
 	prevID := ""
-	if ok {
-		if existingStream, exist := value.([]StreamEntry); exist {
-			stream = existingStream
-			prevID = stream[len(stream)-1].ID
-		}
+	stream := _getLastStream(st, key)
+	if len(stream) > 0 {
+		prevID = stream[len(stream)-1].ID
 	}
-	entryID, err := resolveStreamID(entryID, prevID, st)
+
+	entryID, err := _resolveStreamID(entryID, prevID, st)
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
-	fmt.Printf("Resolved stream ID: %s\n", entryID)
-	_, err = validateStreamID(entryID, prevID)
+	_, err = _validateStreamID(entryID, prevID)
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
@@ -154,4 +162,92 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	stream = append(stream, newEntry)
 	st.Set(key, stream, 0)
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
+}
+
+func _normalizeStreamID(id string) (string, error) {
+	parts := strings.Split(id, "-")
+	if len(parts) > 2 {
+		return "", fmt.Errorf("invalid stream ID format")
+	}
+	_, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid milliseconds in stream ID: %v", err)
+	}
+	if len(parts) == 1 {
+		return parts[0] + "-*",nil
+	}
+	if parts[1] != "*" {
+		return id, nil
+	}
+	_, err = strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid sequence number in stream ID: %v", err)
+	}
+	return id, nil
+}
+
+func _getIndexOfStreamID(stream []StreamEntry, targetID string, isStart bool) int {
+	target_ms, target_sq, _ := _splitStreamID(targetID)
+	for idx, entry := range stream {
+		entry_ms, entry_sq, _ := _splitStreamID(entry.ID)
+		if entry_ms == target_ms && entry_sq == target_sq {
+			return idx
+		}
+		if target_ms < entry_ms || (target_ms == entry_ms && target_sq < entry_sq) {
+			if isStart {
+				return idx
+			}
+			return idx -1
+		}
+	}
+	return len(stream) - 1
+}
+
+func _resolveRangeID(rawID string, isStart bool) (string, error) {
+	normID, err := _normalizeStreamID(rawID)
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(normID, "-")
+	if parts[1] == "*" {
+		if isStart {
+			return parts[0] + "-0", nil
+		}
+		return fmt.Sprintf("%s-%d",parts[0],int64(math.MaxInt64)), nil
+	}
+	return normID, nil	
+}
+
+func handleXRange(st *store.ExpireMap, args []string) []byte {
+	if len(args) != 4{
+		return []byte("-ERR wrong number of arguments for 'XRANGE' command\r\n")
+	}
+	key := args[1]
+	startID, err := _resolveRangeID(args[2], true)
+	if err != nil {
+		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+	}
+	endID, err := _resolveRangeID(args[3], false)
+	if err != nil {
+		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+	}
+
+	val, _ := st.Get(key)
+	stream, ok := val.([]StreamEntry)
+	if !ok {
+		return []byte("-ERR no such key\r\n")
+	}
+	stream_matched := []StreamEntry{}
+
+	start_idx := _getIndexOfStreamID(stream, startID, true)
+	end_idx := _getIndexOfStreamID(stream, endID, false)
+	if start_idx <= end_idx {
+		stream_matched = stream[start_idx:end_idx+1]
+	}
+	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
+	for i := 0; i < len(stream_matched); i++ {
+		word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
+		response = append(response, word...)
+	}
+	return []byte(response)
 }
