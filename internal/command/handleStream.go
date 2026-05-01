@@ -290,7 +290,9 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 	stream_matched = stream[start_idx:]
 
 	fmt.Printf("will reply%v", stream_matched)
+
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
+	response = append(response, []byte(fmt.Sprintf("*2\r\n$%dr‘n%s\r\n", len(key), key))...)
 	for i := 0; i < len(stream_matched); i++ {
 		word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
 		field_header := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched[i].value) * 2))
