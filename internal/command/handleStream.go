@@ -282,7 +282,6 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 	half := len(key_id_pair) / 2
 	keys := key_id_pair[:half]
 	ids := key_id_pair[half:]
-
 	for i := 0; i < len(ids); i++ {
 		entryiD, err := _resolveRangeID(ids[i], true)
 		if err != nil {
@@ -300,15 +299,15 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		}
 		start_idx := _getIndexOfStreamID(stream, ids[i], true)
 		streams[i] = stream[start_idx:]
-	} 
+	}
 	response := []byte("*1\r\n")
 	for i := 0; i < len(keys); i++ {
 		key := keys[i]
 		response = append(response, []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(key), key))...)
 		response = append(response, []byte(fmt.Sprintf("*%d\r\n", len(streams[i])))...)
 		for j := 0; j < len(streams[i]); j++ {
+			fmt.Sprintf("stream entry ID: %v\n", streams[i][j])
 			word := formatStreamResponse(streams[i][j])
-			fmt.Printf("formatted stream response: %s\n", string(word))
 			response = append(response, word...)
 		}
 	}
