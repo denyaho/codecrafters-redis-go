@@ -275,7 +275,17 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleXRead(st *store.ExpireMap, args []string) []byte  {
-	key_id_pair := args[2:]
+	streamID := -1
+	for i, arg := range args {
+		if strings.ToUpper(arg) == "STREAMS" {
+			streamID = i
+			break
+		}
+	}
+	if streamID == -1 {
+		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
+	}
+	key_id_pair := args[streamID+1:]
 	if len(key_id_pair) %2 != 0{
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
