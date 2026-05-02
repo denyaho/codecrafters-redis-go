@@ -275,12 +275,13 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleXRead(st *store.ExpireMap, args []string) []byte  {
-	if len(args[1:]) %2 != 0{
+	key_id_pair := args[2:]
+	if len(key_id_pair) %2 != 0{
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
-	half := len(args[1:]) / 2
-	keys := args[1 : 1+half]
-	ids := args[1+half:]
+	half := len(key_id_pair) / 2
+	keys := key_id_pair[:half]
+	ids := key_id_pair[half:]
 
 	for i := 0; i < len(ids); i++ {
 		entryiD, err := _resolveRangeID(ids[i], true)
