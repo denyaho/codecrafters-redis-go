@@ -271,13 +271,12 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleXRead(st *store.ExpireMap, args []string) []byte  {
-	key_id_pairs := args[1:]
-	if len(key_id_pairs) %2 != 0{
+	if len(args[1:]) %2 != 0{
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
-	half := len(key_id_pairs) / 2
-	keys := key_id_pairs[:half]
-	ids := key_id_pairs[half:]
+	half := len(args[1:]) / 2
+	keys := args[1 : 1+half]
+	ids := args[1+half:]
 
 	for i := 0; i < len(ids); i++ {
 		entryiD, err := _resolveRangeID(ids[i], true)
@@ -307,13 +306,14 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 			word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(streams[i][j].ID), streams[i][j].ID))
 			field_header := []byte(fmt.Sprintf("*%d\r\n", len(streams[i][j].value) * 2))
 			word = append(word, field_header...)
-		for field, value := range streams[i][j].value {
-			field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
-			value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
-			word = append(word, field_word...)
+			for field, value := range streams[i][j].value {
+				field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
+				value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
+				word = append(word, field_word...)
 			word = append(word, value_word...)
+			}
+			response = append(response, word...)
 		}
-		response = append(response, word...)
 	}
 	return response
 }
