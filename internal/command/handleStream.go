@@ -317,7 +317,6 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		response = append(response, []byte(fmt.Sprintf("*%d\r\n", len(streams[i])))...)
 		for j := 0; j < len(streams[i]); j++ {
 			word := formatStreamResponse(streams[i][j])
-			fmt.Printf("formatted stream response: %s\n", string(word))
 			response = append(response, word...)
 		}
 	}
