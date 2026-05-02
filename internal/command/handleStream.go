@@ -225,6 +225,18 @@ func _resolveRangeID(rawID string, isStart bool) (string, error) {
 	return normID, nil	
 }
 
+func formatStreamResponse(entry StreamEntry) []byte {
+	word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(entry.ID), entry.ID))
+	field_header := []byte(fmt.Sprintf("*%d\r\n", len(entry.value) * 2))
+	word = append(word, field_header...)
+	for field, value := range entry.value {
+		field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
+		value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
+		word = append(word, field_word...)
+		word = append(word, value_word...)
+	}
+	return word
+}
 
 
 func handleXRange(st *store.ExpireMap, args []string) []byte {
@@ -256,15 +268,7 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	
 	response := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched)))
 	for i := 0; i < len(stream_matched); i++ {
-		word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(stream_matched[i].ID), stream_matched[i].ID))
-		field_header := []byte(fmt.Sprintf("*%d\r\n", len(stream_matched[i].value) * 2))
-		word = append(word, field_header...)
-		for field, value := range stream_matched[i].value {
-			field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
-			value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
-			word = append(word, field_word...)
-			word = append(word, value_word...)
-		}
+		word := formatStreamResponse(stream_matched[i])
 		response = append(response, word...)
 	}
 	return response
@@ -286,7 +290,7 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		ids[i] = entryiD
 	}
 
-	streams := [][]StreamEntry{}
+	streams := make([][]StreamEntry, len(keys))
 
 	for i := 0; i < len(keys); i++{
 		val, _ := st.Get(keys[i])
@@ -303,15 +307,7 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		response = append(response, []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(key), key))...)
 		response = append(response, []byte(fmt.Sprintf("*%d\r\n", len(streams[i])))...)
 		for j := 0; j < len(streams[i]); j++ {
-			word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(streams[i][j].ID), streams[i][j].ID))
-			field_header := []byte(fmt.Sprintf("*%d\r\n", len(streams[i][j].value) * 2))
-			word = append(word, field_header...)
-			for field, value := range streams[i][j].value {
-				field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
-				value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
-				word = append(word, field_word...)
-			word = append(word, value_word...)
-			}
+			word := formatStreamResponse(streams[i][j])
 			response = append(response, word...)
 		}
 	}
