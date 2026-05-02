@@ -301,12 +301,12 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		start_idx := _getIndexOfStreamID(stream, ids[i], true)
 		streams[i] = stream[start_idx:]
 	} 
-	fmt.Sprintf("streams: %v\n", streams)
 	response := []byte("*1\r\n")
 	for i := 0; i < len(keys); i++ {
 		key := keys[i]
 		response = append(response, []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(key), key))...)
 		response = append(response, []byte(fmt.Sprintf("*%d\r\n", len(streams[i])))...)
+		fmt.Sprintf("key is %s", key)
 		for j := 0; j < len(streams[i]); j++ {
 			word := formatStreamResponse(streams[i][j])
 			response = append(response, word...)
