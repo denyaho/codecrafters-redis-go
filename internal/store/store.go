@@ -267,7 +267,7 @@ func _isGreaterStreamID(id1, id2 string) (bool) {
 func (m *ExpireMap) XReadBlock(key, entryID string, timeout time.Duration) (bool, bool) {
 	m.mu.Lock()
 	stream, _ := m.data[key].value.([]StreamEntry)
-	if len(stream) > 0 {
+	if len(stream) > 0  && entryID != "$" {
 		lastStream := stream[len(stream)-1]
 		if _isGreaterStreamID(entryID, lastStream.ID) {
 			m.mu.Unlock()
