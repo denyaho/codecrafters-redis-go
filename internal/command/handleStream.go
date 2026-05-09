@@ -268,7 +268,7 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 func handleXReadStream(st *store.ExpireMap, args []string) []byte {
 	key_id_pair := args[1:]
 	if len(key_id_pair) %2 != 0{
-		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
+		return []byte("*-1\r\n")
 	}
 	half := len(key_id_pair) / 2
 	keys := key_id_pair[:half]
