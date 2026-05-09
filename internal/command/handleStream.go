@@ -329,6 +329,19 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
 	key := args[streamID + 1]
+	if args[streamID + 2] == "$" {
+		val, ok := st.Get(key)
+		if ok {
+			stream, ok2 := val.([]store.StreamEntry)
+			if ok2 && len(stream) > 0 {
+				args[streamID + 2] = stream[len(stream)-1].ID
+			} else {
+				args[streamID + 2] = "0-0"
+			}
+		}else {
+			args[streamID + 2] = "0-0"
+		}
+	}
 	entryID := args[streamID + 2]
 	if blockingSec >= 0 {
 		ok, isTimeout := st.XReadBlock(key, entryID, blockingSec)
@@ -337,9 +350,6 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		} else if !ok {
 			return []byte("-ERR no such key\r\n")
 		}
-	}
-	if args[streamID + 2] == "$" {
-		args[streamID + 2] = "0-0"
 	}	
 	return handleXReadStream(st, args[streamID:])
 }
