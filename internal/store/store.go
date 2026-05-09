@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 	"errors"
+	"strings"
 )
 
 type StreamEntry struct {
@@ -252,12 +253,26 @@ func (m *ExpireMap) XAdd(key string, entryID string, pairs map[string]string) (e
 	return nil
 }
 
-func (m *ExpireMap) XReadBlock(key string, timeout time.Duration) (bool, bool) {
+func _isGreaterStreamID(id1, id2 string) (bool) {
+	id1_split:= strings.Split(id1, "-")
+	id2_split := strings.Split(id2, "-")
+	if id1_split[0] > id2_split[0] {
+		return true
+	} else if id1_split[0] == id2_split[0] && id1_split[1] > id2_split[1] {
+		return true
+	}
+	return false
+}
+
+func (m *ExpireMap) XReadBlock(key, entryID string, timeout time.Duration) (bool, bool) {
 	m.mu.Lock()
 	stream, _ := m.data[key].value.([]StreamEntry)
 	if len(stream) > 0 {
-		m.mu.Unlock()
-		return true, false
+		lastStream := stream[len(stream)-1]
+		if _isGreaterStreamID(entryID, lastStream.ID) {
+			m.mu.Unlock()
+			return true,false
+		}
 	}
 
 	ch := make(chan struct{}, 1)

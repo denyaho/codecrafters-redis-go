@@ -330,7 +330,9 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
 	if blockingSec >= 0 {
-		ok, isTimeout := st.XReadBlock(args[streamID + 1], blockingSec)
+		key := args[streamID + 1]
+		entryID := args[streamID + 2]
+		ok, isTimeout := st.XReadBlock(key, entryID, blockingSec)
 		if isTimeout {
 			return []byte("$-1\r\n")
 		} else if !ok {
