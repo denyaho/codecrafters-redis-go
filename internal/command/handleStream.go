@@ -145,10 +145,12 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 
 	entryID, err := _resolveStreamID(entryID, prevID, st)
 	if err != nil {
+		fmt.Println("error resolving stream ID:", err)
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
 	_, err = _validateStreamID(entryID, prevID)
 	if err != nil {
+		fmt.Println("error validating stream ID:", err)
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
 	st.XAdd(key, entryID, pairs)
