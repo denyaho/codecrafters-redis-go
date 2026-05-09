@@ -268,7 +268,7 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 func handleXReadStream(st *store.ExpireMap, args []string) []byte {
 	key_id_pair := args[1:]
 	if len(key_id_pair) %2 != 0{
-		return []byte("*-1\r\n")
+		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
 	half := len(key_id_pair) / 2
 	keys := key_id_pair[:half]
@@ -316,13 +316,14 @@ func _handleXreadArgs(args []string) (int, time.Duration){
 				blockingSec, _ = strconv.Atoi(args[i+1])
 		}
 	}
+
 	return streamID, time.Duration(blockingSec) * time.Millisecond 
 }
 
 func handleXRead(st *store.ExpireMap, args []string) []byte  {
 	streamID, blockingSec := _handleXreadArgs(args)
 	if streamID == -1 {
-		return []byte("*-1\r\n")
+		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
 	if blockingSec >= 0 {
 		ok, isTimeout := st.XReadBlock(args[streamID + 1], blockingSec)
@@ -333,5 +334,5 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		}
 	}
 	
-	return handleXReadStream(st, args[streamID+1:])
+	return handleXReadStream(st, args[streamID:])
 }
