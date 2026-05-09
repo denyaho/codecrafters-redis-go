@@ -334,7 +334,7 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		entryID := args[streamID + 2]
 		ok, isTimeout := st.XReadBlock(key, entryID, blockingSec)
 		if isTimeout {
-			return []byte("$-1\r\n")
+			return []byte("*-1\r\n")
 		} else if !ok {
 			return []byte("-ERR no such key\r\n")
 		}
