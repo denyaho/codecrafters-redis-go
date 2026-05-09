@@ -10,10 +10,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
-type StreamEntry struct {
-	ID string
-	value map[string]string
-}
+
 
 func handleType(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 2 {
@@ -29,7 +26,7 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 		return []byte("+string\r\n")
 	case []string:
 		return []byte("+list\r\n")
-	case []StreamEntry:
+	case []store.StreamEntry:
 		return []byte("+stream\r\n")
 	default:
 		return []byte("+none\r\n")
@@ -114,12 +111,12 @@ func _resolveStreamID(rawID, prevID string, st *store.ExpireMap) (string, error)
 	return rawID, nil
 }
 
-func _getLastStream(st *store.ExpireMap, key string) ([]StreamEntry) {
-	var stream []StreamEntry
+func _getLastStream(st *store.ExpireMap, key string) ([]store.StreamEntry) {
+	var stream []store.StreamEntry
 
 	value, ok := st.Get(key)
 	if ok {
-		if existingStream, exist := value.([]StreamEntry); exist {
+		if existingStream, exist := value.([]store.StreamEntry); exist {
 			stream = existingStream
 		}
 	}
@@ -140,10 +137,6 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 		value := args[i+1]
 		pairs[field] = value
 	}
-	newEntry := StreamEntry{
-		ID: entryID,
-		value: pairs,
-	}
 	prevID := ""
 	stream := _getLastStream(st, key)
 	if len(stream) > 0 {
@@ -158,9 +151,7 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if err != nil {
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
-	newEntry.ID = entryID
-	stream = append(stream, newEntry)
-	st.Set(key, stream, 0)
+	st.XAdd(key, entryID, pairs)
 	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
 }
 
@@ -186,7 +177,7 @@ func _normalizeStreamID(id string) (string, error) {
 	return id, nil
 }
 
-func _getIndexOfStreamID(stream []StreamEntry, targetID string, isStart bool) int {
+func _getIndexOfStreamID(stream []store.StreamEntry, targetID string, isStart bool) int {
 	target_ms, target_sq, _ := _splitStreamID(targetID)
 	for idx, entry := range stream {
 		entry_ms, entry_sq, _ := _splitStreamID(entry.ID)
@@ -225,11 +216,11 @@ func _resolveRangeID(rawID string, isStart bool) (string, error) {
 	return normID, nil	
 }
 
-func formatStreamResponse(entry StreamEntry) []byte {
+func formatStreamResponse(entry store.StreamEntry) []byte {
 	word := []byte(fmt.Sprintf("*2\r\n$%d\r\n%s\r\n", len(entry.ID), entry.ID))
-	field_header := []byte(fmt.Sprintf("*%d\r\n", len(entry.value) * 2))
+	field_header := []byte(fmt.Sprintf("*%d\r\n", len(entry.Value) * 2))
 	word = append(word, field_header...)
-	for field, value := range entry.value {
+	for field, value := range entry.Value {
 		field_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(field), field))
 		value_word := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value), value))
 		word = append(word, field_word...)
@@ -254,11 +245,11 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	}
 
 	val, _ := st.Get(key)
-	stream, ok := val.([]StreamEntry)
+	stream, ok := val.([]store.StreamEntry)
 	if !ok {
 		return []byte("-ERR no such key\r\n")
 	}
-	stream_matched := []StreamEntry{}
+	stream_matched := []store.StreamEntry{}
 
 	start_idx := _getIndexOfStreamID(stream, startID, true)
 	end_idx := _getIndexOfStreamID(stream, endID, false)
@@ -274,18 +265,8 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	return response
 }
 
-func handleXRead(st *store.ExpireMap, args []string) []byte  {
-	streamID := -1
-	for i, arg := range args {
-		if strings.ToUpper(arg) == "STREAMS" {
-			streamID = i
-			break
-		}
-	}
-	if streamID == -1 {
-		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
-	}
-	key_id_pair := args[streamID+1:]
+func handleXReadStream(st *store.ExpireMap, args []string) []byte {
+	key_id_pair := args[1:]
 	if len(key_id_pair) %2 != 0{
 		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
 	}
@@ -300,10 +281,10 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		ids[i] = entryiD
 	}
 
-	streams := make([][]StreamEntry, len(keys))
+	streams := make([][]store.StreamEntry, len(keys))
 	for i := 0; i < len(keys); i++{
 		val, _ := st.Get(keys[i])
-		stream, ok := val.([]StreamEntry)
+		stream, ok := val.([]store.StreamEntry)
 		if !ok {
 			return []byte("-ERR no such key\r\n")
 		}
@@ -321,4 +302,36 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 		}
 	}
 	return response
+}
+
+func _handleXreadArgs(args []string) (int, time.Duration){
+	streamID := -1
+	blockingSec := -1
+	for i, arg := range args {
+		command := strings.ToUpper(arg)
+		switch command {
+			case "STREAMS":
+				streamID = i
+			case "BLOCK":
+				blockingSec, _ = strconv.Atoi(args[i+1])
+		}
+	}
+	return streamID, time.Duration(blockingSec) * time.Millisecond 
+}
+
+func handleXRead(st *store.ExpireMap, args []string) []byte  {
+	streamID, blockingSec := _handleXreadArgs(args)
+	if streamID == -1 {
+		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
+	}
+	if blockingSec >= 0 {
+		ok, isTimeout := st.XReadBlock(args[streamID + 1], blockingSec)
+		if isTimeout {
+			return []byte("$-1\r\n")
+		} else if !ok {
+			return []byte("-ERR no such key\r\n")
+		}
+	}
+	
+	return handleXReadStream(st, args[streamID+1:])
 }

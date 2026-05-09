@@ -6,6 +6,11 @@ import (
 	"errors"
 )
 
+type StreamEntry struct {
+	ID string
+	Value map[string]string
+}
+
 type Item struct{
 	value any
 	expireAt int64
@@ -219,6 +224,65 @@ func (m *ExpireMap) BLPop(key string, timeout time.Duration) (string, bool, bool
 	return list[0], true, false
 }
 
+func (m *ExpireMap) XAdd(key string, entryID string, pairs map[string]string) (error){
+	m.mu.Lock()
+	item, exist := m.data[key]
+	stream, ok := item.value.([]StreamEntry)
+	if exist && !ok {
+		m.mu.Unlock()
+		return ErrWrongType
+	}else if !exist {
+		stream = []StreamEntry{}
+	}
+	newEntry := StreamEntry{
+		ID: entryID,
+		Value: pairs,
+	}
+	stream = append(stream, newEntry)
+	m.data[key] = Item{value: stream}
+
+	ch := m.signals[key]
+	m.mu.Unlock()
+	if ch != nil {
+		select {
+		case ch <- struct{}{}:
+		default:
+		}
+	}
+	return nil
+}
+
+func (m *ExpireMap) XReadBlock(key string, timeout time.Duration) (bool, bool) {
+	m.mu.Lock()
+	stream, _ := m.data[key].value.([]StreamEntry)
+	if len(stream) > 0 {
+		m.mu.Unlock()
+		return true, false
+	}
+
+	ch := make(chan struct{}, 1)
+	m.signals[key] = ch
+	m.mu.Unlock()
+
+	var timer <- chan time.Time
+	if timeout > 0 {
+		timer = time.After(timeout)
+	}
+	select {
+		case <-ch:
+		case <-timer:
+			return false, true
+	}
+	m.mu.Lock()
+	stream, _ = m.data[key].value.([]StreamEntry)
+	if len(stream) == 0 {
+		m.mu.Unlock()
+		return false, false
+	}
+	m.mu.Unlock()
+	return true, false
+}
+
 type Store interface {
 	Set(key, value string, expireAt time.Duration)
 	Get(key string) (string, bool)
@@ -227,7 +291,9 @@ type Store interface {
 	LPush(key string, value ...string) int
 	Llen(key string) int
 	Lpop(key string) (string, bool)
-	BLPop(key string, timeout time.Duration) (string, bool)
+	BLPop(key string, timeout time.Duration) (string, bool, bool)
+	XAdd(key string, entryID string, pairs map[string]string) error
+	XReadBlock(key string, timeout time.Duration) ([]StreamEntry, bool, bool)
 }
 
 func NewExpireMap() *ExpireMap {
