@@ -274,6 +274,9 @@ func (m *ExpireMap) XReadBlock(key, entryID string, timeout time.Duration) (bool
 			return true,false
 		}
 	}
+	if entryID == "$" {
+		entryID = "0-0"
+	}
 
 	ch := make(chan struct{}, 1)
 	m.signals[key] = ch
