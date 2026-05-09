@@ -145,12 +145,10 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 
 	entryID, err := _resolveStreamID(entryID, prevID, st)
 	if err != nil {
-		fmt.Println("error resolving stream ID:", err)
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
 	_, err = _validateStreamID(entryID, prevID)
 	if err != nil {
-		fmt.Println("error validating stream ID:", err)
 		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 	}
 	st.XAdd(key, entryID, pairs)
@@ -324,7 +322,7 @@ func _handleXreadArgs(args []string) (int, time.Duration){
 func handleXRead(st *store.ExpireMap, args []string) []byte  {
 	streamID, blockingSec := _handleXreadArgs(args)
 	if streamID == -1 {
-		return []byte("-ERR wrong number of arguments for 'XREAD' command\r\n")
+		return []byte("*-1\r\n")
 	}
 	if blockingSec >= 0 {
 		ok, isTimeout := st.XReadBlock(args[streamID + 1], blockingSec)
