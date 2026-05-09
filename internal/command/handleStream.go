@@ -182,10 +182,10 @@ func _getIndexOfStreamID(stream []store.StreamEntry, targetID string, isStart,is
 	for idx, entry := range stream {
 		entry_ms, entry_sq, _ := _splitStreamID(entry.ID)
 		if entry_ms == target_ms && entry_sq == target_sq {
-			if isInclusive {
-				return idx + 1
+			if !isInclusive {
+				return idx
 			}
-			return idx
+			return idx +1
 		}
 		if target_ms < entry_ms || (target_ms == entry_ms && target_sq < entry_sq) {
 			if isStart {
