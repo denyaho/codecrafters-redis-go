@@ -177,11 +177,14 @@ func _normalizeStreamID(id string) (string, error) {
 	return id, nil
 }
 
-func _getIndexOfStreamID(stream []store.StreamEntry, targetID string, isStart bool) int {
+func _getIndexOfStreamID(stream []store.StreamEntry, targetID string, isStart,isInclusive bool) int {
 	target_ms, target_sq, _ := _splitStreamID(targetID)
 	for idx, entry := range stream {
 		entry_ms, entry_sq, _ := _splitStreamID(entry.ID)
 		if entry_ms == target_ms && entry_sq == target_sq {
+			if isInclusive {
+				return idx + 1
+			}
 			return idx
 		}
 		if target_ms < entry_ms || (target_ms == entry_ms && target_sq < entry_sq) {
@@ -251,8 +254,8 @@ func handleXRange(st *store.ExpireMap, args []string) []byte {
 	}
 	stream_matched := []store.StreamEntry{}
 
-	start_idx := _getIndexOfStreamID(stream, startID, true)
-	end_idx := _getIndexOfStreamID(stream, endID, false)
+	start_idx := _getIndexOfStreamID(stream, startID, true, false)
+	end_idx := _getIndexOfStreamID(stream, endID, false, false)
 	if start_idx <= end_idx {
 		stream_matched = stream[start_idx:end_idx+1]
 	}
@@ -288,7 +291,7 @@ func handleXReadStream(st *store.ExpireMap, args []string) []byte {
 		if !ok {
 			return []byte("-ERR no such key\r\n")
 		}
-		start_idx := _getIndexOfStreamID(stream, ids[i], true)
+		start_idx := _getIndexOfStreamID(stream, ids[i], true, true)
 		streams[i] = stream[start_idx:]
 	}
 	response := []byte(fmt.Sprintf("*%d\r\n", len(keys)))
