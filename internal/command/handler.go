@@ -54,6 +54,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			response = handleXRead(st, args)
 		case "INCR":
 			response = handleINCR(st, args)
+		case "MULTI":
+			response = handleMULTI(st, args)
 		}
 		conn.Write(response)
 	}

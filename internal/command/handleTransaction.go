@@ -24,3 +24,7 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 	st.Set(key, strconv.Itoa(intValue), 0)
 	return []byte(":" + strconv.Itoa(intValue) + "\r\n")
 }
+
+func handleMULTI(st *store.ExpireMap, args []string) []byte {
+	return []byte("+OK\r\n")
+}
