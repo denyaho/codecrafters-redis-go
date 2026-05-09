@@ -292,6 +292,7 @@ func handleXReadStream(st *store.ExpireMap, args []string) []byte {
 			return []byte("-ERR no such key\r\n")
 		}
 		start_idx := _getIndexOfStreamID(stream, ids[i], true, true)
+		fmt.Printf("start_idx for key %s is %d\n", keys[i], start_idx)
 		streams[i] = stream[start_idx:]
 	}
 	response := []byte(fmt.Sprintf("*%d\r\n", len(keys)))
