@@ -338,6 +338,8 @@ func handleXRead(st *store.ExpireMap, args []string) []byte  {
 			return []byte("-ERR no such key\r\n")
 		}
 	}
-	
+	if args[streamID + 2] == "$" {
+		args[streamID + 2] = "0-0"
+	}	
 	return handleXReadStream(st, args[streamID:])
 }
