@@ -7,7 +7,7 @@ import (
 
 func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte {
 	lines := make(map[string]string)
-	lines["role"] = "master"
+	lines["role"] = role
 	lines["master_replid"] = replID
 	lines["connected_slaves"] = "0"
 	lines["master_repl_offset"] = "-1"

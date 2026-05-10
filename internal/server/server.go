@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"math/rand"
+	"strings"
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
@@ -14,6 +15,7 @@ type Server struct {
 	st   *store.ExpireMap
 	role string
 	replID string
+	masterAddr string
 }
 
 func _generateReplID() string {
@@ -36,7 +38,9 @@ func New(port, address, role string) *Server {
 }
 
 func (s *Server) StartServer() {
-
+	if s.role == "slave" {
+		go s.connectToMaster()
+	}
 	l, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		fmt.Printf("Failed to bind to port %s: %v\n", s.addr, err)
@@ -52,5 +56,22 @@ func (s *Server) StartServer() {
 			handler.HandleConnection(c, s.st, s.role, s.replID)
 		}(conn)
 	}
+}
+
+func (s *Server) connectToMaster() {
+	masterAddr := strings.Split(s.masterAddr, ":")
+	if len(masterAddr) != 2 {
+		fmt.Printf("Invalid master address: %s\n", s.masterAddr)
+		return
+	}
+	addr := strings.TrimSpace(masterAddr[0])
+	port := strings.TrimSpace(masterAddr[1])
+	fullAddr := addr + ":" + port
+	conn,err := net.Dial("tcp", fullAddr)
+	if err != nil {
+		fmt.Printf("Failed to connect to master at %s: %v\n", fullAddr, err)
+		return
+	}
+	defer conn.Close()
 }
 

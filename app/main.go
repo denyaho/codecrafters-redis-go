@@ -23,10 +23,11 @@ func main() {
 		}
 		if arg == "--replicaof" {
 			role = "slave"
+			masterAddr := os.Args[i+1]
 		}
 	}
 	fmt.Println("Logs from your program will appear here!")
-	server := server.New(port, "0.0.0.0", role)
+	server := server.New(port, "0.0.0.0", role, masterAddr)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
 	//
