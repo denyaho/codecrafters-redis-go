@@ -59,6 +59,9 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 			response = handleXRead(st, args)
 		case "INCR":
 			response = handleINCR(st, args)
+		default:
+			response = []byte("*0\r\n")
+			break
 		}
 	}
 	return response
