@@ -15,6 +15,9 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	var response []byte
+
+	isMulti := false
+	queue := [][]string{} 
 	for {
 		args, err :=resp.Parse(reader)
 		if err != nil {
@@ -55,7 +58,18 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 		case "INCR":
 			response = handleINCR(st, args)
 		case "MULTI":
-			response = handleMULTI(st, args)
+			isMulti = true
+			queue = [][]string{}
+			response = []byte("+OK\r\n")
+		case "EXEC":
+			if !isMulti {
+				response = []byte("-ERR EXEC without MULTI\r\n")
+			}else {
+				response = handleEXEC(st, queue)
+				isMulti = false
+				queue = [][]string{}
+			}
+
 		}
 		conn.Write(response)
 	}

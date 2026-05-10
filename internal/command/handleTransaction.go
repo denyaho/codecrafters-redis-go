@@ -25,6 +25,39 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 	return []byte(":" + strconv.Itoa(intValue) + "\r\n")
 }
 
-func handleMULTI(st *store.ExpireMap, args []string) []byte {
-	return []byte("+OK\r\n")
+func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
+	for _, args := range queue {
+		switch strings.ToUpper(args[0]) {
+		case "PING":
+			response = handlePing()
+		case "ECHO":
+			response = handleEcho(args)
+		case "SET":
+			response = handleSet(st, args)			
+		case "GET":
+			response = handleGet(st, args)
+		case "RPUSH":
+			response = handleRpush(st, args)
+		case "LRANGE":
+			response = handleLrange(st, args)
+		case "LPUSH":
+			response = handleLpush(st, args)
+		case "LLEN":
+			response = handleLlen(st, args)
+		case "LPOP":	
+			response = handleLpop(st, args)
+		case "BLPOP":
+			response = handleBLpop(st, args)
+		case "TYPE":
+			response = handleType(st, args)
+		case "XADD":
+			response = handleXAdd(st, args)
+		case "XRANGE":
+			response = handleXRange(st, args)
+		case "XREAD":
+			response = handleXRead(st, args)
+		case "INCR":
+			response = handleINCR(st, args)
+	}
+	return response
 }
