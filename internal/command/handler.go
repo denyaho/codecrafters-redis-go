@@ -25,7 +25,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			conn.Write(response)
 			return
 		}
-		if isMulti {
+		if isMulti && strings.ToUpper(args[0]) != "EXEC"{
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
 			conn.Write(response)
