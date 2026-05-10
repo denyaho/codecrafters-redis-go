@@ -25,6 +25,12 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 			conn.Write(response)
 			return
 		}
+		if isMulti {
+			queue = append(queue, args)
+			response = []byte("+QUEUED\r\n")
+			conn.Write(response)
+			continue
+		}
 		fmt.Printf("Received command: %v\n", args)
 		switch strings.ToUpper(args[0]) {
 		case "PING":
