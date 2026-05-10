@@ -69,7 +69,6 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 				isMulti = false
 				queue = [][]string{}
 			}
-
 		}
 		conn.Write(response)
 	}

@@ -2,7 +2,7 @@ package handler
 
 import (
 	"strconv"
-	
+	"strings"	
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
@@ -26,6 +26,7 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
+	var response []byte
 	for _, args := range queue {
 		switch strings.ToUpper(args[0]) {
 		case "PING":
@@ -58,6 +59,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 			response = handleXRead(st, args)
 		case "INCR":
 			response = handleINCR(st, args)
+		}
 	}
 	return response
 }
