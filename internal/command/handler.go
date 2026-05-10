@@ -20,16 +20,16 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 	queue := [][]string{} 
 	for {
 		args, err :=resp.Parse(reader)
-		if err != nil {
-			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
-			conn.Write(response)
-			return
-		}
-		if isMulti && strings.ToUpper(args[0]) != "EXEC"{
+		if isMulti && strings.ToUpper(args[0]) != "EXEC"　&& strings.ToUpper(args[0]) != "DISCARD" {
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
 			conn.Write(response)
 			continue
+		}
+		if err != nil {
+			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+			conn.Write(response)
+			return
 		}
 		fmt.Printf("Received command: %v\n", args)
 		switch strings.ToUpper(args[0]) {
