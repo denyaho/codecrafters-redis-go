@@ -11,7 +11,7 @@ import (
 )
 
 
-func HandleConnection(conn net.Conn, st *store.ExpireMap) {
+func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID string) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	var response []byte
@@ -83,6 +83,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 				queue = [][]string{}
 				response = []byte("+OK\r\n")
 			}
+		case "INFO":
+			response = handleInfo(st, args, role, replID)
 		}
 		conn.Write(response)
 	}

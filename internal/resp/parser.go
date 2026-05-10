@@ -38,9 +38,6 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from connection: %v", err)
 	}
-	if len(message) == 0 {
-		return nil, err
-	}
 	switch message[0] {
 		case '+':
 			return []string{strings.TrimSpace(message[1:])}, nil
