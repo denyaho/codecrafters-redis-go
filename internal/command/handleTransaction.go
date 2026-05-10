@@ -32,7 +32,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 		return []byte("*0\r\n")
 	}
 	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
-	for i, args := range queue {
+	for _, args := range queue {
 		switch strings.ToUpper(args[0]) {
 		case "PING":
 			response = handlePing()
