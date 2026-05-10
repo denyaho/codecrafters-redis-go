@@ -16,6 +16,7 @@ func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	port := "6379"
 	role := "master"
+	masterAddr := ""
 	for i, arg := range os.Args {
 		if arg == "--port" && i+1 < len(os.Args) {
 			port = os.Args[i+1]
@@ -23,7 +24,7 @@ func main() {
 		}
 		if arg == "--replicaof" {
 			role = "slave"
-			masterAddr := os.Args[i+1]
+			masterAddr = os.Args[i+1]
 		}
 	}
 	fmt.Println("Logs from your program will appear here!")

@@ -27,13 +27,14 @@ func _generateReplID() string {
 	return string(replID)
 }
 
-func New(port, address, role string) *Server {
+func New(port, address, role, masterAddr string) *Server {
 	full_address := address + ":" + port
 	return &Server{
 		addr: full_address,
 		st: store.NewExpireMap(),
 		role: role,
 		replID: _generateReplID(),
+		masterAddr: masterAddr,
 	}
 }
 
