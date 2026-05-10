@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"	
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"fmt"
 )
 
 func handleINCR(st *store.ExpireMap, args []string) []byte {
@@ -30,7 +31,8 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 	if len(queue) == 0 {
 		return []byte("*0\r\n")
 	}
-	for _, args := range queue {
+	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
+	for i, args := range queue {
 		switch strings.ToUpper(args[0]) {
 		case "PING":
 			response = handlePing()
@@ -63,6 +65,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 		case "INCR":
 			response = handleINCR(st, args)
 		}
+		responses = append(responses, response...)
 	}
-	return response
+	return responses
 }
