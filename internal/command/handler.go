@@ -75,6 +75,14 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 				isMulti = false
 				queue = [][]string{}
 			}
+		case "DISCARD":
+			if !isMulti {
+				response = []byte("-ERR DISCARD without MULTI\r\n")
+			} else {
+				isMulti = false
+				queue = [][]string{}
+				response = []byte("+OK\r\n")
+			}
 		}
 		conn.Write(response)
 	}
