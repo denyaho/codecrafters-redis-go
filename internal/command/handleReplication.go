@@ -7,14 +7,15 @@ import (
 
 func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte {
 	lines := make(map[string]string)
-	lines["role"] = role
-	lines["replid"] = replID
+	lines["role"] = "master"
+	lines["master_replid"] = replID
 	lines["connected_slaves"] = "0"
-	lines["connected_clients"] = "0"
-	lines["used_memory"] = "0"
-	lines["used_memory_human"] = "0B"
-	lines["used_memory_peak"] = "0"
-	lines["used_memory_peak_human"] = "0B"
+	lines["master_repl_offset"] = "-1"
+	lines["second_repl_offset"] = "-1"
+	lines["repl_backlog_active"] = "0"
+	lines["repl_backlog_size"] = "1048576"
+	lines["repl_backlog_first_byte_offset"] = "0"
+	lines["repl_backlog_histlen"] = "0"
 
 	var response []byte
 	for key, value := range lines{
