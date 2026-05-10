@@ -17,7 +17,7 @@ func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte 
 	lines["repl_backlog_first_byte_offset"] = "0"
 	lines["repl_backlog_histlen"] = "0"
 
-	response := []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len("role") + len(lines["role"]), "role", lines["role"]))
+	response := []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len("role") + len(lines["role"] ) + 1, "role", lines["role"]))
 	// for key, value := range lines{
 	// 	response = append(response, []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len(key)+len(value)+1, key, value))...)
 	// }
