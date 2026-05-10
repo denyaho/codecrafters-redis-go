@@ -20,7 +20,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap) {
 	queue := [][]string{} 
 	for {
 		args, err :=resp.Parse(reader)
-		if isMulti && strings.ToUpper(args[0]) != "EXEC"　&& strings.ToUpper(args[0]) != "DISCARD" {
+		if isMulti && strings.ToUpper(args[0]) != "EXEC" && strings.ToUpper(args[0]) != "DISCARD" {
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
 			conn.Write(response)
