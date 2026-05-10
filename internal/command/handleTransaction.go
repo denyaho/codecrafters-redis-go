@@ -27,6 +27,9 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 
 func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 	var response []byte
+	if len(queue) == 0 {
+		return []byte("*0\r\n")
+	}
 	for _, args := range queue {
 		switch strings.ToUpper(args[0]) {
 		case "PING":
@@ -59,9 +62,6 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 			response = handleXRead(st, args)
 		case "INCR":
 			response = handleINCR(st, args)
-		default:
-			response = []byte("*0\r\n")
-			break
 		}
 	}
 	return response
