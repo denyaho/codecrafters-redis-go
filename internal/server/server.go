@@ -60,17 +60,9 @@ func (s *Server) StartServer() {
 }
 
 func (s *Server) connectToMaster() {
-	masterAddr := strings.Split(s.masterAddr, ":")
-	if len(masterAddr) != 2 {
-		fmt.Printf("Invalid master address: %s\n", s.masterAddr)
-		return
-	}
-	addr := strings.TrimSpace(masterAddr[0])
-	port := strings.TrimSpace(masterAddr[1])
-	fullAddr := addr + ":" + port
-	conn,err := net.Dial("tcp", fullAddr)
+	conn,err := net.Dial("tcp", s.masterAddr)
 	if err != nil {
-		fmt.Printf("Failed to connect to master at %s: %v\n", fullAddr, err)
+		fmt.Printf("Failed to connect to master at %s: %v\n", s.masterAddr, err)
 		return
 	}
 	handler.HandleConnect_to_Master(conn)
