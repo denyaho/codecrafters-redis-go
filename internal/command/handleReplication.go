@@ -22,6 +22,6 @@ func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte 
 	for _, kv := range fields {
 		body += fmt.Sprintf("%s:%s\r\n", kv[0], kv[1])
 	}
-	response := []byte(fmt.Sprintf("$%d\r\n%s", len(body), body))
+	response := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(body), body))
 	return response
 }
