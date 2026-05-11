@@ -5,7 +5,6 @@ import (
 	"net"
 	"os"
 	"math/rand"
-	"strings"
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
