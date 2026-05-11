@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"fmt"
+	"net"
 )
 
 func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte {
@@ -24,4 +25,16 @@ func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte 
 	}
 	response := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(body), body))
 	return response
+}
+
+func _sendPing() []byte {
+	return []byte("*1\r\n$4\r\nPING\r\n")
+}
+
+func HandleConnect_to_Master(conn net.Conn) {
+	_, err := conn.Write(_sendPing())
+	if err != nil {
+		fmt.Printf("Failed to send PING to master: %v\n", err)
+		return
+	}
 }

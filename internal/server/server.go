@@ -73,6 +73,7 @@ func (s *Server) connectToMaster() {
 		fmt.Printf("Failed to connect to master at %s: %v\n", fullAddr, err)
 		return
 	}
+	handler.HandleConnect_to_Master(conn)
 	defer conn.Close()
 }
 
