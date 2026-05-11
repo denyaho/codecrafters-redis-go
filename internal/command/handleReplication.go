@@ -6,23 +6,22 @@ import (
 )
 
 func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte {
-	lines := make(map[string]string)
-	lines["role"] = role
-	lines["master_replid"] = replID
-	lines["connected_slaves"] = "0"
-	lines["master_repl_offset"] = "0"
-	lines["second_repl_offset"] = "-1"
-	lines["repl_backlog_active"] = "0"
-	lines["repl_backlog_size"] = "1048576"
-	lines["repl_backlog_first_byte_offset"] = "0"
-	lines["repl_backlog_histlen"] = "0"
+	fields := [][2]string{
+		{"role", role},
+		{"master_replid", replID},
+		{"connected_slaves", "0"},
+		{"master_repl_offset", "0"},
+		{"second_repl_offset", "-1"},
+		{"repl_backlog_active", "0"},
+		{"repl_backlog_size", "1048576"},
+		{"repl_backlog_first_byte_offset", "0"},
+		{"repl_backlog_histlen", "0"},
+	}
 
-	response := []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len("role") + len(lines["role"] ) + 1, "role", lines["role"]))
-	response = append(response, []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len("master_replid") + len(lines["master_replid"] ) + 1, "master_replid", lines["master_replid"]))...)
-	response = append(response, []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len("master_repl_offset") + len(lines["master_repl_offset"] ) + 1, "master_repl_offset", lines["master_repl_offset"]))...)
-	fmt.Printf("Generated INFO response: %s", response)
-	// for key, value := range lines{
-	// 	response = append(response, []byte(fmt.Sprintf("$%d\r\n%s:%s\r\n", len(key)+len(value)+1, key, value))...)
-	// }
+	body := ""
+	for _, kv := range fields {
+		body += fmt.Sprintf("%s:%s\r\n", kv[0], kv[1])
+	}
+	response := []byte(fmt.Sprintf("$%d\r\n%s", len(body), body))
 	return response
 }
