@@ -85,6 +85,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 			}
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
+		case "REPLCONF":
+			response = handleREPLCONF(st, args)
 		}
 		conn.Write(response)
 	}
