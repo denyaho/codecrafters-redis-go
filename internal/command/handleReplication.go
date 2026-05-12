@@ -39,11 +39,12 @@ func handleREPLCONF(st *store.ExpireMap, args []string) []byte {
 	return []byte("-ERR unknown REPLCONF option\r\n")
 }
 
-func handlePSYNC(st *store.ExpireMap, args []string) []byte {
+func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
 	if len(args) < 3 {
 		return []byte("-ERR wrong number of arguments for 'PSYNC' command\r\n")
 	}
-	replID := args[1]
 	offset := args[2]
+	if offset == "-1" {
+		offset = "0"
 	return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))	
 }
