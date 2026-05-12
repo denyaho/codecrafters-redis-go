@@ -39,12 +39,24 @@ func HandleConnect_to_Master(conn net.Conn) {
 		}
 		switch strings.ToUpper(args[0]) {
 		case "PONG":
-			conn.Write(_sendREPLCONF(true))
-			conn.Write(_sendREPLCONF(false))
+			_, err := conn.Write(_sendREPLCONF(true))
+			if err != nil {
+				fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
+				return
+			}
+			_, err = conn.Write(_sendREPLCONF(false))
+			if err != nil {
+				fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
+				return
+			}
 			isReplicationEstablished = true
 		case "OK":
 			if isReplicationEstablished {
-				conn.Write(_sendPSYNC())
+				_, err := conn.Write(_sendPSYNC())
+				if err != nil {
+					fmt.Printf("Failed to send PSYNC to master: %v\n", err)
+					return
+				}
 			}
 		}
 	}
