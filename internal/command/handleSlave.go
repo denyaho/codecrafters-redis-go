@@ -3,6 +3,9 @@ package handler
 import (
 	"fmt"
 	"net"
+	"bufio"
+	"strings"
+	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 )
 
 func _sendPing() []byte {
@@ -22,14 +25,17 @@ func HandleConnect_to_Master(conn net.Conn) {
 		fmt.Printf("Failed to send PING to master: %v\n", err)
 		return
 	}
-	_, err = conn.Write(_sendREPLCONF(true))
-	if err != nil {
-		fmt.Printf("Failed to send REPLCONF listening-port to master: %v\n", err)
-		return
-	}
-	_, err = conn.Write(_sendREPLCONF(false))
-	if err != nil {
-		fmt.Printf("Failed to send REPLCONF capa to master: %v\n", err)
-		return
+	reader := bufio.NewReader(conn)
+	for {
+		args, err := resp.Parse(reader)
+		if err != nil {
+			fmt.Printf("Failed to read PING response from master: %v\n", err)
+			return
+		}
+		switch strings.ToUpper(args[0]) {
+		case "PONG":
+			conn.Write(_sendREPLCONF(true))
+			conn.Write(_sendREPLCONF(false))
+		}
 	}
 }
