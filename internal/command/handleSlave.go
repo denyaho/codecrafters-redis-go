@@ -30,6 +30,7 @@ func HandleConnect_to_Master(conn net.Conn) {
 		return
 	}
 	isReplicationEstablished := false
+	isFirstREPLCONFSent := false
 	reader := bufio.NewReader(conn)
 	for {
 		args, err := resp.Parse(reader)
@@ -44,21 +45,24 @@ func HandleConnect_to_Master(conn net.Conn) {
 				fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
 				return
 			}
-			_, err = conn.Write(_sendREPLCONF(false))
-			if err != nil {
-				fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
-				return
-			}
-			isReplicationEstablished = true
+			isFirstREPLCONFSent = true
 		case "OK":
 			if isReplicationEstablished {
-				fmt.Println("Replication established with master")
 				_, err := conn.Write(_sendPSYNC())
 				if err != nil {
 					fmt.Printf("Failed to send PSYNC to master: %v\n", err)
 					return
 				}
 			}
+			if isFirstREPLCONFSent {
+				isReplicationEstablished = true
+				_, err := conn.Write(_sendREPLCONF(false))
+				if err != nil {
+					fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
+					return
+				}
+			}
+
 		}
 	}
 }
