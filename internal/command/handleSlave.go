@@ -23,7 +23,7 @@ func _sendPSYNC() []byte {
 	return []byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")
 }
 
-func HandleConnect_to_Master(conn net.Conn, replID string) {
+func HandleConnect_to_Master(conn net.Conn) {
 	_, err := conn.Write(_sendPing())
 	if err != nil {
 		fmt.Printf("Failed to send PING to master: %v\n", err)

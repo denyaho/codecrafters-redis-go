@@ -46,5 +46,6 @@ func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
 	offset := args[2]
 	if offset == "-1" {
 		offset = "0"
+	}
 	return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))	
 }
