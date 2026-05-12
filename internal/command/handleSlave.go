@@ -55,12 +55,13 @@ func HandleConnect_to_Master(conn net.Conn) {
 				}
 			}
 			if isFirstREPLCONFSent {
-				isReplicationEstablished = true
 				_, err := conn.Write(_sendREPLCONF(false))
 				if err != nil {
 					fmt.Printf("Failed to send REPLCONF to master: %v\n", err)
 					return
 				}
+				isReplicationEstablished = true
+				isFirstREPLCONFSent = false
 			}
 
 		}
