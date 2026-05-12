@@ -52,6 +52,7 @@ func HandleConnect_to_Master(conn net.Conn) {
 			isReplicationEstablished = true
 		case "OK":
 			if isReplicationEstablished {
+				fmt.Println("Replication established with master")
 				_, err := conn.Write(_sendPSYNC())
 				if err != nil {
 					fmt.Printf("Failed to send PSYNC to master: %v\n", err)
