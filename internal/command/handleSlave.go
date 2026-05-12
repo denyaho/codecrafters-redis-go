@@ -19,12 +19,17 @@ func _sendREPLCONF(isFirst bool) []byte {
 	return []byte("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n")
 }
 
+func _sendPSYNC() []byte {
+	return []byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")
+}
+
 func HandleConnect_to_Master(conn net.Conn) {
 	_, err := conn.Write(_sendPing())
 	if err != nil {
 		fmt.Printf("Failed to send PING to master: %v\n", err)
 		return
 	}
+	isReplicationEstablished := false
 	reader := bufio.NewReader(conn)
 	for {
 		args, err := resp.Parse(reader)
@@ -36,6 +41,11 @@ func HandleConnect_to_Master(conn net.Conn) {
 		case "PONG":
 			conn.Write(_sendREPLCONF(true))
 			conn.Write(_sendREPLCONF(false))
+			isReplicationEstablished = true
+		case "OK":
+			if isReplicationEstablished {
+				conn.Write(_sendPSYNC())
+			}
 		}
 	}
 }
