@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"strings"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
 func _sendPing() []byte {
@@ -23,7 +24,7 @@ func _sendPSYNC() []byte {
 	return []byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")
 }
 
-func HandleConnect_to_Master(conn net.Conn) {
+func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap) {
 	_, err := conn.Write(_sendPing())
 	if err != nil {
 		fmt.Printf("Failed to send PING to master: %v\n", err)
@@ -63,7 +64,8 @@ func HandleConnect_to_Master(conn net.Conn) {
 				isReplicationEstablished = true
 				isFirstREPLCONFSent = false
 			}
-
+		case "SET":
+			_ = handleSet(st, args)
 		}
 	}
 }

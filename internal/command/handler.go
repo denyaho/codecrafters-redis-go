@@ -10,11 +10,20 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
+func PropagateCommand_to_Slave(args []string) []byte {
+	responses := fmt.Sprintf("*%d\r\n",len(args))
+	for _, arg := range args {
+		responses += fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
+	}
+	return []byte(responses)
+}
+
 
 func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID string) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	var response []byte
+	isPsynced := false
 
 	isMulti := false
 	queue := [][]string{} 
@@ -38,7 +47,11 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			response = handleSet(st, args)			
+			response = handleSet(st, args)	
+			if isPsynced {
+				conn.Write(PropagateCommand_to_Slave(args))
+				continue
+			}
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
@@ -91,6 +104,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 			response = handlePSYNC(st, args, replID)
 			conn.Write(response)
 			conn.Write(buildRDB())
+			isPsynced = true
 			continue
 		}
 		conn.Write(response)
