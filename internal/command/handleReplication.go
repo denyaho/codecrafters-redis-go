@@ -48,7 +48,7 @@ func handleREPLCONF(st *store.ExpireMap, args []string) []byte {
 var emtpyRDB = "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog=="
 
 func buildRDB() []byte {
-	return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(emtpyRDB), emtpyRDB))
+	return []byte(fmt.Sprintf("$%d\r\n%s", len(emtpyRDB), emtpyRDB))
 }
 
 func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
