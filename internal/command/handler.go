@@ -47,10 +47,10 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			response = handleSet(st, args)	
 			if isPsynced {
-				conn.Write(PropagateCommand_to_Slave(args))
-				continue
+				response = PropagateCommand_to_Slave(args)
+			} else {
+				response = handleSet(st, args)
 			}
 		case "GET":
 			response = handleGet(st, args)
