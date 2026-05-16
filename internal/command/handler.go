@@ -96,7 +96,6 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			response = handlePSYNC(st, args, replID)
 			conn.Write(response)
 			conn.Write(buildRDB())
-			replicaManager.Add(conn)
 			continue
 		}
 		conn.Write(response)
