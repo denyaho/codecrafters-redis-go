@@ -47,6 +47,7 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 			return parseArray(reader, count)
 		case '$':
 			bulk_string, err := parseBulkString(reader)
+			fmt.Printf("Parsed bulk string: %s\n", bulk_string)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse bulk string: %v", err)
 			}
