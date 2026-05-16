@@ -40,6 +40,9 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			fmt.Printf("Failed to read PING response from master: %v\n", err)
 			return
 		}
+		if strings.HasPrefix(string(args[0]), "FULLRESYNC") {
+			continue
+		}
 		switch strings.ToUpper(args[0]) {
 		case "PONG":
 			_, err := conn.Write(_sendREPLCONF(true))
