@@ -70,6 +70,8 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			}
 		case "SET":
 			_ = handleSet(st, args)
+		case "FULLRESYNC":
+			continue
 		}
 	}
 }
