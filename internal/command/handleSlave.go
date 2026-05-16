@@ -36,6 +36,9 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 	reader := bufio.NewReader(conn)
 	for {
 		args, err := resp.Parse(reader)
+		if strings.HasPrefix(string(args[0]), "FULLRESYNC") {
+			continue
+		}
 		if err != nil {
 			fmt.Printf("Failed to read PING response from master: %v\n", err)
 			return
@@ -67,8 +70,6 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			}
 		case "SET":
 			_ = handleSet(st, args)
-		case "FULLRESYNC":
-			replicaManager.Add(conn)
 		}
 	}
 }
