@@ -10,7 +10,6 @@ type ReplicaManager struct {
 	Role string
 	ReplID string
 	MasterAddr string
-	IsPsynced bool
 	Connections []net.Conn
 	mu          sync.Mutex
 }

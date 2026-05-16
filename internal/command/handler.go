@@ -42,13 +42,8 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			if replicaManager.IsPsynced {
-				replicaManager.PropagateCommand(args)
-				continue
-			} else{
-				response = handleSet(st, args)
-			}
-
+			response = handleSet(st, args)
+			replicaManager.PropagateCommand(args)
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":

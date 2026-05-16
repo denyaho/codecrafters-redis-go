@@ -34,7 +34,7 @@ func New(port, address, role, masterAddr string) *Server {
 			Role: role,
 			ReplID: _generateReplID(),
 			MasterAddr: masterAddr,
-			IsPsynced: false,
+			Connections: []net.Conn{},
 		},
 	}
 }
@@ -66,7 +66,7 @@ func (s *Server) connectToMaster() {
 		fmt.Printf("Failed to connect to master at %s: %v\n", s.replicaManager.MasterAddr, err)
 		return
 	}
-	handler.HandleConnect_to_Master(conn,s.st)
+	handler.HandleConnect_to_Master(conn,s.st, s.replicaManager)
 	defer conn.Close()
 }
 
