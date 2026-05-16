@@ -64,10 +64,11 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 				}
 				isReplicationEstablished = true
 				isFirstREPLCONFSent = false
-				replicaManager.Add(conn)
 			}
 		case "SET":
 			_ = handleSet(st, args)
+		case "FULLRESYNC":
+			replicaManager.Add(conn)
 		}
 	}
 }
