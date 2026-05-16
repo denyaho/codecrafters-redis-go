@@ -38,6 +38,7 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from connection: %v", err)
 	}
+	fmt.Printf("Received raw message: %s, %c\n", message, message[0])
 	switch message[0] {
 		case '+':
 			return []string{strings.TrimSpace(message[1:])}, nil
@@ -47,7 +48,6 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 			return parseArray(reader, count)
 		case '$':
 			bulk_string, err := parseBulkString(reader)
-			fmt.Printf("Parsed bulk string: %s\n", bulk_string)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse bulk string: %v", err)
 			}
