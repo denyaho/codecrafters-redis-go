@@ -7,14 +7,13 @@ import (
 	"math/rand"
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 )
 
 type Server struct {
 	addr string
 	st   *store.ExpireMap
-	role string
-	replID string
-	masterAddr string
+	replicaManager *replication.ReplicaManager
 }
 
 func _generateReplID() string {
@@ -31,14 +30,17 @@ func New(port, address, role, masterAddr string) *Server {
 	return &Server{
 		addr: full_address,
 		st: store.NewExpireMap(),
-		role: role,
-		replID: _generateReplID(),
-		masterAddr: masterAddr,
+		replicaManager: &replication.ReplicaManager{
+			Role: role,
+			ReplID: _generateReplID(),
+			MasterAddr: masterAddr,
+			IsPsynced: false,
+		},
 	}
 }
 
 func (s *Server) StartServer() {
-	if s.role == "slave" {
+	if s.replicaManager.Role == "slave" {
 		go s.connectToMaster()
 	}
 	l, err := net.Listen("tcp", s.addr)
@@ -53,15 +55,15 @@ func (s *Server) StartServer() {
 			continue
 		}
 		go func(c net.Conn) {
-			handler.HandleConnection(c, s.st, s.role, s.replID)
+			handler.HandleConnection(c, s.st, s.replicaManager)
 		}(conn)
 	}
 }
 
 func (s *Server) connectToMaster() {
-	conn,err := net.Dial("tcp", s.masterAddr)
+	conn,err := net.Dial("tcp", s.replicaManager.MasterAddr)
 	if err != nil {
-		fmt.Printf("Failed to connect to master at %s: %v\n", s.masterAddr, err)
+		fmt.Printf("Failed to connect to master at %s: %v\n", s.replicaManager.MasterAddr, err)
 		return
 	}
 	handler.HandleConnect_to_Master(conn,s.st)

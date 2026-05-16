@@ -8,22 +8,17 @@ import (
 
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 )
 
-func PropagateCommand_to_Slave(args []string) []byte {
-	responses := fmt.Sprintf("*%d\r\n",len(args))
-	for _, arg := range args {
-		responses += fmt.Sprintf("$%d\r\n%s\r\n", len(arg), arg)
-	}
-	return []byte(responses)
-}
 
-
-func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID string) {
+func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 	var response []byte
-	isPsynced := false
+
+	role := replicaManager.Role
+	replID := replicaManager.ReplID
 
 	isMulti := false
 	queue := [][]string{} 
@@ -47,11 +42,13 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			if isPsynced {
-				response = PropagateCommand_to_Slave(args)
-			} else {
+			if replicaManager.IsPsynced {
+				replicaManager.PropagateCommand(args)
+				continue
+			} else{
 				response = handleSet(st, args)
 			}
+
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
@@ -104,7 +101,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, role string, replID st
 			response = handlePSYNC(st, args, replID)
 			conn.Write(response)
 			conn.Write(buildRDB())
-			isPsynced = true
+			replicaManager.Add(conn)
 			continue
 		}
 		conn.Write(response)
