@@ -47,11 +47,15 @@ func Parse(reader *bufio.Reader) ([]string, error)  {
 			count, _ := strconv.Atoi(countStr)
 			return parseArray(reader, count)
 		case '$':
-			bulk_string, err := parseBulkString(reader)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse bulk string: %v", err)
+			word_counter := strings.TrimSpace(message[1:])
+			size, _ := strconv.Atoi(word_counter)
+			buf := make([]byte, size)
+			io.ReadFull(reader, buf)
+			peek, _ := reader.Peek(2)
+			if len(peek) == 2 && peek[0] == '\r' && peek[1] == '\n' {
+				reader.ReadString('\n')
 			}
-			return []string{bulk_string}, nil
+			return []string{string(buf)}, nil
 		default:
 			return nil, fmt.Errorf("unexpected message type: %c", message[0])
 	}
