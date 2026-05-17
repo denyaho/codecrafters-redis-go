@@ -75,7 +75,6 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			}
 		case "SET":
 			_ = handleSet(st, args)
-		case "PING":
 		case "REPLCONF":
 			if args[1] == "GETACK" && args[2] == "*" {
 				_, err := conn.Write(_respondACK(replicaManager.GetOffset()))
