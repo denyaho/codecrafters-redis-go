@@ -14,6 +14,7 @@ type ReplicaManager struct {
 	Connections []net.Conn
 	mu          sync.Mutex
 	IsPsynced bool
+	Offset int64
 }
 
 func (rm *ReplicaManager) Add(conn net.Conn) {
@@ -54,7 +55,26 @@ func (rm *ReplicaManager) GetPsynced() bool {
 	return rm.IsPsynced
 }
 
-func (rm *ReplicaManager) StartTimer() {
+func (rm *ReplicaManager) AddOffset(args []string) {
+	rm.mu.Lock()
+	defer rm.mu.Unlock()
+	offset := int64(len(BuildCommand(args)))
+	rm.Offset += offset
+}
+
+func (rm *ReplicaManager) GetOffset() int64 {
+	rm.mu.Lock()
+	defer rm.mu.Unlock()
+	return rm.Offset
+}
+
+func (rm *ReplicaManager) SetOffset(){
+	rm.mu.Lock()
+	defer rm.mu.Unlock()
+	rm.Offset = 0
+}
+
+func (rm *ReplicaManager) StartReplicationHeartbeat() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 

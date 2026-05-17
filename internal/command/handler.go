@@ -44,6 +44,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		switch strings.ToUpper(args[0]) {
 		case "PING":
 			response = handlePing()
+			replicaManager.PropagateCommand(args)
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
@@ -103,6 +104,13 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			conn.Write(buildRDB())
 			replicaManager.Add(conn)
 			continue
+		}
+		PropagateCommands := []string{"SET", "PING"}
+		for _, command := range PropagateCommands{
+			if strings.ToUpper(args[0]) == command {
+				replicaManager.PropagateCommand(args)
+				break
+			}
 		}
 		conn.Write(response)
 	}

@@ -36,6 +36,7 @@ func New(port, address, role, masterAddr string) *Server {
 			MasterAddr: masterAddr,
 			Connections: []net.Conn{},
 			IsPsynced: false,
+			Offset: 0,
 		},
 	}
 }
@@ -45,7 +46,7 @@ func (s *Server) StartServer() {
 		go s.connectToMaster()
 	}
 	if s.replicaManager.Role == "master" {
-		go s.replicaManager.StartTimer()
+		go s.replicaManager.StartReplicationHeartbeat()
 	}
 	l, err := net.Listen("tcp", s.addr)
 	if err != nil {
