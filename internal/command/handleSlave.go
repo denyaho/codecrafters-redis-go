@@ -85,6 +85,7 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 					return
 				}
 				replicaManager.SetOffset()
+				continue
 			}		
 		}
 		replicaManager.AddOffset(args)
