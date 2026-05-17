@@ -44,6 +44,9 @@ func (s *Server) StartServer() {
 	if s.replicaManager.Role == "slave" {
 		go s.connectToMaster()
 	}
+	if s.replicaManager.Role == "master" {
+		go s.replicaManager.StartTimer()
+	}
 	l, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		fmt.Printf("Failed to bind to port %s: %v\n", s.addr, err)

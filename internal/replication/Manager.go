@@ -54,7 +54,7 @@ func (rm *ReplicaManager) GetPsynced() bool {
 	return rm.IsPsynced
 }
 
-func (rm *ReplicaManager) startTimer() {
+func (rm *ReplicaManager) StartTimer() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
