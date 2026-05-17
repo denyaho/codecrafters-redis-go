@@ -25,6 +25,10 @@ func _sendPSYNC() []byte {
 	return []byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")
 }
 
+func _respondACK() []byte {
+	return replication.BuildCommand([]string{"REPLCONF", "ACK", "*"})
+}
+
 func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager) {
 	_, err := conn.Write(_sendPing())
 	if err != nil {
@@ -41,6 +45,7 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			return
 		}
 		if strings.HasPrefix(string(args[0]), "FULLRESYNC") {
+			replicaManager.SetPsynced(true)
 			continue
 		}
 		switch strings.ToUpper(args[0]) {
@@ -70,6 +75,13 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 			}
 		case "SET":
 			_ = handleSet(st, args)
-		}
+		case "REPLCONF":
+			if args[1] == "GETACK" && args[2] == "*" {
+				_, err := conn.Write(_respondACK())
+				if err != nil {
+					fmt.Printf("Failed to send ACK to master: %v\n", err)
+					return
+				}
+			}		}
 	}
 }

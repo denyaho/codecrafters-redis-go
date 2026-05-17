@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
@@ -14,6 +15,10 @@ import (
 
 func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager) {
 	defer conn.Close()
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
 	reader := bufio.NewReader(conn)
 	var response []byte
 

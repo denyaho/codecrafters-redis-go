@@ -35,6 +35,7 @@ func New(port, address, role, masterAddr string) *Server {
 			ReplID: _generateReplID(),
 			MasterAddr: masterAddr,
 			Connections: []net.Conn{},
+			IsPsynced: false,
 		},
 	}
 }
