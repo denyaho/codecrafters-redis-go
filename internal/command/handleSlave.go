@@ -26,7 +26,7 @@ func _sendPSYNC() []byte {
 }
 
 func _respondACK() []byte {
-	return replication.BuildCommand([]string{"REPLCONF", "ACK", "*"})
+	return replication.BuildCommand([]string{"REPLCONF", "ACK", "0"})
 }
 
 func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager) {
