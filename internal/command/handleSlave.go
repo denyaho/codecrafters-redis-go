@@ -86,7 +86,6 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 					fmt.Printf("Failed to send ACK to master: %v\n", err)
 					return
 				}
-				replicaManager.SetOffset()
 				replicaManager.AddOffset(args)
 			}		
 		}

@@ -58,8 +58,7 @@ func (rm *ReplicaManager) GetPsynced() bool {
 func (rm *ReplicaManager) AddOffset(args []string) {
 	rm.mu.Lock()
 	defer rm.mu.Unlock()
-	offset := int64(len(BuildCommand(args)))
-	rm.Offset += offset
+	rm.Offset += int64(len(BuildCommand(args)))
 }
 
 func (rm *ReplicaManager) GetOffset() int64 {
