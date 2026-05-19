@@ -44,12 +44,10 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		switch strings.ToUpper(args[0]) {
 		case "PING":
 			response = handlePing()
-			replicaManager.PropagateCommand(args)
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
 			response = handleSet(st, args)
-			replicaManager.PropagateCommand(args)
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
