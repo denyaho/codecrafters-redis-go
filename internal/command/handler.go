@@ -103,7 +103,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			replicaManager.Add(conn)
 			continue
 		}
-		PropagateCommands := []string{"SET", "PING"}
+		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
 			if strings.ToUpper(args[0]) == command {
 				replicaManager.PropagateCommand(args)
