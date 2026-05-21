@@ -91,17 +91,22 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	if err != nil {
 		return []byte("-ERR invalid timeout\r\n")
 	}
+	 if numreplicas == 0 || len(rm.Connections) == 0 {
+      return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))}
 	
 	var timer <- chan time.Time
 	if timeout > 0 {
 		timer = time.After(time.Duration(timeout) * time.Millisecond)
 	}
+	if timeout == 0 {
+		return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
+	}
+
 	acked := 0
 	rm.PropagateCommand([]string{"REPLCONF", "GETACK", "*"})
 	for {
 		select {
 		case offset := <-rm.AckChan:
-			fmt.Printf("Received ACK for offset: %d\n", offset)
 			if offset >= rm.Masteroffset {
 				acked ++
 				if acked >= numreplicas {
@@ -109,7 +114,6 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 				}
 			}
 		case <-timer:
-			fmt.Printf("WAIT command timed out after %d milliseconds with %d replicas acknowledged\r\n", timeout, acked)
 			return []byte(fmt.Sprintf(":%d\r\n", acked))
 		}
 	}	
