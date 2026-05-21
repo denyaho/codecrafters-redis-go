@@ -95,19 +95,21 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":
-			response = handleREPLCONF(st, args)
+			response = handleREPLCONF(st, args, replicaManager)
 		case "PSYNC":
 			response = handlePSYNC(st, args, replID)
 			conn.Write(response)
 			conn.Write(buildRDB())
 			replicaManager.Add(conn)
 			continue
+		case "WAIT":
+			response = handleWAIT(args, replicaManager)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
 			if strings.ToUpper(args[0]) == command {
 				replicaManager.PropagateCommand(args)
-				break
+
 			}
 		}
 		conn.Write(response)

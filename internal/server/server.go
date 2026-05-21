@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"math/rand"
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
@@ -16,28 +15,12 @@ type Server struct {
 	replicaManager *replication.ReplicaManager
 }
 
-func _generateReplID() string {
-	randomstring := "abcdefghijklmnopqrstuvwxyz0123456789"
-	replID := make([]byte, 40)
-	for i := range replID {
-		replID[i] = randomstring[rand.Intn(len(randomstring))]
-	}
-	return string(replID)
-}
-
 func New(port, address, role, masterAddr string) *Server {
 	full_address := address + ":" + port
 	return &Server{
 		addr: full_address,
 		st: store.NewExpireMap(),
-		replicaManager: &replication.ReplicaManager{
-			Role: role,
-			ReplID: _generateReplID(),
-			MasterAddr: masterAddr,
-			Connections: []net.Conn{},
-			IsPsynced: false,
-			Offset: 0,
-		},
+		replicaManager: replication.NewReplicaManager(role, masterAddr),
 	}
 }
 

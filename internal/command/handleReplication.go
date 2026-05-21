@@ -1,9 +1,13 @@
 package handler
 
 import (
-	"github.com/codecrafters-io/redis-starter-go/internal/store"
-	"fmt"
 	"encoding/hex"
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 )
 
 
@@ -28,7 +32,7 @@ func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte 
 	return response
 }
 
-func handleREPLCONF(st *store.ExpireMap, args []string) []byte {
+func handleREPLCONF(st *store.ExpireMap, args []string, rm *replication.ReplicaManager) []byte {
 	if len(args) < 3 {
 		return []byte("-ERR wrong number of arguments for 'REPLCONF' command\r\n")
 	}
@@ -40,6 +44,15 @@ func handleREPLCONF(st *store.ExpireMap, args []string) []byte {
 			return []byte("+OK\r\n")
 		}
 		if args[i] == "capa" {
+			return []byte("+OK\r\n")
+		}
+		if args[i] == "ACK" {
+			offset := args[i+1]
+			offsetInt, err := strconv.ParseInt(offset, 10, 64)
+			if err != nil {
+				return []byte("-ERR invalid offset for 'ACK' in 'REPLCONF' command\r\n")
+			}
+			rm.AckChan <- offsetInt
 			return []byte("+OK\r\n")
 		}
 	}
@@ -64,4 +77,38 @@ func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
 		return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))
 	}
 	return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))	
+}
+
+func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
+	if len(args) != 3 {
+		return []byte("-ERR wrong number of arguments for 'WAIT' command\r\n")
+	}
+	numreplicas, err := strconv.Atoi(args[1])
+	if err != nil {
+		return []byte("-ERR invalid number of replicas\r\n")
+	}
+	timeout, err := strconv.Atoi(args[2])
+	if err != nil {
+		return []byte("-ERR invalid timeout\r\n")
+	}
+	
+	var timer <- chan time.Time
+	if timeout > 0 {
+		timer = time.After(time.Duration(timeout) * time.Millisecond)
+	}
+	acked := 0
+	rm.PropagateCommand([]string{"REPLCONF", "GETACK", "*"})
+	for {
+		select {
+		case offset := <-rm.AckChan:
+			if offset >= rm.Masteroffset {
+				acked ++
+				if acked >= numreplicas {
+					return []byte(fmt.Sprintf(":%d\r\n", acked))
+				}
+			}
+		case <-timer:
+			return []byte(fmt.Sprintf(":%d\r\n", acked))
+		}
+	}
 }
