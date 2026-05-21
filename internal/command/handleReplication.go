@@ -98,8 +98,8 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	}
 	acked := 0
 	rm.PropagateCommand([]string{"REPLCONF", "GETACK", "*"})
-	fmt.Printf("waiting...")
 	for {
+		fmt.Print("Waiting for ACKs...") // Debugging statement
 		select {
 		case offset := <-rm.AckChan:
 			if offset >= rm.Masteroffset {

@@ -104,7 +104,6 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			continue
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
-			fmt.Printf("WAIT response: %s", response)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
