@@ -91,8 +91,8 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	if err != nil {
 		return []byte("-ERR invalid timeout\r\n")
 	}
-	if numreplicas == 0 || len(rm.Connections) == 0 {
-      return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))}
+	// if numreplicas == 0 || len(rm.Connections) == 0 {
+    //   return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))}
 	
 	if rm.Masteroffset == 0 {
 		return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
@@ -110,12 +110,10 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	rm.PropagateCommand([]string{"REPLCONF", "GETACK", "*"})
 	for {
 		select {
-		case offset := <-rm.AckChan:
-			if offset >= rm.Masteroffset {
-				acked++
-				if acked >= numreplicas {
-					return []byte(fmt.Sprintf(":%d\r\n", acked))
-				}
+		case <-rm.AckChan:
+			acked++
+			if acked >= numreplicas {
+				return []byte(fmt.Sprintf(":%d\r\n", acked))
 			}
 		case <-timer:
 			return []byte(fmt.Sprintf(":%d\r\n", acked))
