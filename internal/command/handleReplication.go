@@ -46,14 +46,14 @@ func handleREPLCONF(st *store.ExpireMap, args []string, rm *replication.ReplicaM
 		if args[i] == "capa" {
 			return []byte("+OK\r\n")
 		}
-		if args[i] == "GETACK" {
+		if args[i] == "ACK" {
 			offset := args[i+1]
 			offsetInt, err := strconv.ParseInt(offset, 10, 64)
 			if err != nil {
 				return []byte("-ERR invalid offset for 'ACK' in 'REPLCONF' command\r\n")
 			}
 			rm.AckChan <- offsetInt
-			return []byte("+OK\r\n")
+			return nil
 		}
 	}
 	return []byte("-ERR unknown REPLCONF option\r\n")
@@ -110,8 +110,10 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	rm.PropagateCommand([]string{"REPLCONF", "GETACK", "*"})
 	for {
 		select {
-		case <-rm.AckChan:
-			acked ++
+		case offset := <-rm.AckChan:
+			if offset >= rm.Masteroffset {
+				acked++
+			}
 			if acked >= numreplicas {
 				return []byte(fmt.Sprintf(":%d\r\n", acked))
 			}
