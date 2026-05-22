@@ -113,9 +113,9 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 		case offset := <-rm.AckChan:
 			if offset >= rm.Masteroffset {
 				acked++
-			}
-			if acked >= numreplicas {
-				return []byte(fmt.Sprintf(":%d\r\n", acked))
+				if acked >= numreplicas {
+					return []byte(fmt.Sprintf(":%d\r\n", acked))
+				}
 			}
 		case <-timer:
 			return []byte(fmt.Sprintf(":%d\r\n", acked))
