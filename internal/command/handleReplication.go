@@ -46,7 +46,7 @@ func handleREPLCONF(st *store.ExpireMap, args []string, rm *replication.ReplicaM
 		if args[i] == "capa" {
 			return []byte("+OK\r\n")
 		}
-		if args[i] == "ACK" {
+		if args[i] == "GETACK" {
 			offset := args[i+1]
 			offsetInt, err := strconv.ParseInt(offset, 10, 64)
 			if err != nil {
