@@ -68,7 +68,7 @@ func handleLpush(st *store.ExpireMap, args []string) []byte {
 	if err != nil {
 		return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
 	}
-	return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", list_length))
+	return resp.BuildInteger(list_length)
 }
 
 func handleLlen(st *store.ExpireMap, args []string) []byte {
