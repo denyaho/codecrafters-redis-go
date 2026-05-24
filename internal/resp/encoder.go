@@ -10,7 +10,7 @@ func BuildSimpleString(s string) []byte {
 }
 
 func BuildError(s string) []byte {
-	return []byte(fmt.Sprintf("-%s\r\n", s))
+	return []byte(fmt.Sprintf("-%s", s))
 }
 
 func BuildBulkStrings(s string) []byte {

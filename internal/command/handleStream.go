@@ -56,7 +56,7 @@ func _validateStreamID(current_id, prev_id string) (bool, error) {
 		return false, err
 	}
 	if msInt == 0 && sqInt == 0 {
-		return false, fmt.Errorf("The ID specified in XADD must be greater than 0-0")
+		return false, fmt.Errorf("ERR The ID specified in XADD must be greater than 0-0")
 	}
 
 	if prev_id != ""{
