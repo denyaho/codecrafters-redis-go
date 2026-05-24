@@ -110,7 +110,7 @@ func handleLpop(st *store.ExpireMap, args []string) []byte {
 func handleBLpop(st *store.ExpireMap, args []string) []byte {
 	fmt.Println("handling BLPOP command")
 	if len(args) < 3 {
-		return []byte("-ERR wrong number of arguments for 'BLPOP' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'BLPOP' command")
 	}
 	timeoutSec, _ := strconv.ParseFloat(args[2], 64)
 	fmt.Printf("Parsed timeout: %f seconds\n", timeoutSec)
@@ -120,7 +120,7 @@ func handleBLpop(st *store.ExpireMap, args []string) []byte {
 	if istimeout {
 		return resp.BuildArray([]string{})
 	} else if !ok {
-		return resp.BuildNullBulkString()
+		return resp.BuildNullArray()
 	}
 	return resp.BuildArray([]string{args[1], response})
 }
