@@ -126,7 +126,7 @@ func _getLastStream(st *store.ExpireMap, key string) ([]store.StreamEntry) {
 
 func handleXAdd(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 4 || len(args[3:])%2 != 0 {
-		return []byte("-ERR wrong number of arguments for 'XADD' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'XADD' command\r\n")
 	}
 	key := args[1]
 
@@ -145,11 +145,11 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 
 	entryID, err := _resolveStreamID(entryID, prevID, st)
 	if err != nil {
-		return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
+		return resp.BuildError(fmt.Sprintf("%s", err.Error()))
 	}
 	_, err = _validateStreamID(entryID, prevID)
 	if err != nil {
-		return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
+		return resp.BuildError(fmt.Sprintf("%s", err.Error()))
 	}
 	st.XAdd(key, entryID, pairs)
 	return resp.BuildBulkStrings(entryID)
