@@ -83,10 +83,10 @@ func handleLpop(st *store.ExpireMap, args []string) []byte {
 	if len(args) == 2{
 		val, ok, err := st.Lpop(args[1])
 		if err != nil {
-			return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
+			return resp.BuildError(fmt.Sprintf("%s", err.Error()))
 		}
 		if ok {
-			return resp.BuildBulkStrings(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val))
+			return resp.BuildBulkStrings(val)
 		} else {
 			return resp.BuildNullBulkString()
 		}
