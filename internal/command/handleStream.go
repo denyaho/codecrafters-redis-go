@@ -65,7 +65,7 @@ func _validateStreamID(current_id, prev_id string) (bool, error) {
 			return false, fmt.Errorf("invalid previous ID format: %v", err)
 		}
 		if msInt < prev_msInt || (msInt == prev_msInt && sqInt <= prev_sqInt) {
-			return false, fmt.Errorf("The ID specified in XADD is equal or smaller than the target stream top item")
+			return false, fmt.Errorf("ERR The ID specified in XADD is equal or smaller than the target stream top item")
 		}
 	}
 	return true, nil
