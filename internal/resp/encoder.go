@@ -44,5 +44,5 @@ var RDBcontent, _ = hex.DecodeString("524544495330303131fa0972656469732d76657205
 
 func BuildRDB() []byte {
 	header := []byte(fmt.Sprintf("$%d\r\n", len(RDBcontent)))
-	return appenbd(header, RDBcontent...)	
+	return append(header, RDBcontent...)	
 }
