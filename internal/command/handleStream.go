@@ -18,7 +18,7 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 	}
 	value, ok := st.Get(args[1])
 	if !ok {
-		return resp.BuildError("none")
+		return resp.BuildSimpleString("none")
 	}
 
 	switch value.(type) {	
