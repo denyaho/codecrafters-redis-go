@@ -75,9 +75,9 @@ func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
 		offset = "0"
 	}
 	if args[1] == "?" {
-		return resp.BuildSimpleString(fmt.Sprintf("+FULLRESYNC %s %s", replID, offset))
+		return resp.BuildSimpleString(fmt.Sprintf("FULLRESYNC %s %s", replID, offset))
 	}
-	return resp.BuildSimpleString(fmt.Sprintf("+FULLRESYNC %s %s", replID, offset))	
+	return resp.BuildSimpleString(fmt.Sprintf("FULLRESYNC %s %s", replID, offset))	
 }
 
 func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
@@ -94,7 +94,7 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	}
 
 	if rm.Masteroffset == 0 {
-		return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
+		return resp.BuildInteger(len(rm.Connections))
 	}
 	
 	var timer <- chan time.Time
@@ -102,7 +102,7 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 		timer = time.After(time.Duration(timeout) * time.Millisecond)
 	}
 	if timeout == 0 {
-		return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
+		return resp.BuildInteger(len(rm.Connections))
 	}
 
 	acked := 0
@@ -112,10 +112,10 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 		case <-rm.AckChan:
 			acked++
 			if acked >= numreplicas {
-				return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", acked))
+				return resp.BuildInteger(acked)
 			}
 		case <-timer:
-			return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", acked))
+			return resp.BuildInteger(acked)
 		}
 	}	
 }

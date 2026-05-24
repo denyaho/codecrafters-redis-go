@@ -20,6 +20,10 @@ func BuildNullBulkString() []byte {
 	return []byte("$-1\r\n")
 }
 
+func BuildInteger(i int) []byte {
+	return []byte(fmt.Sprintf(":%d\r\n", i))
+}
+
 func BuildArray(arr []string) []byte {
 	if len(arr) == 0 {
 		return []byte("*0\r\n")
