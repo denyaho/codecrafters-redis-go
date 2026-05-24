@@ -23,13 +23,13 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 
 	switch value.(type) {	
 	case string:
-		return resp.BuildError("string")
+		return resp.BuildSimpleString("string")
 	case []string:
-		return resp.BuildError("list")
+		return resp.BuildSimpleString("list")
 	case []store.StreamEntry:
-		return resp.BuildError("stream")
+		return resp.BuildSimpleString("stream")
 	default:
-		return resp.BuildError("none")
+		return resp.BuildSimpleString("none")
 	}
 }
 
