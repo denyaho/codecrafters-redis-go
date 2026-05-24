@@ -100,7 +100,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		case "PSYNC":
 			response = handlePSYNC(st, args, replID)
 			conn.Write(response)
-			conn.Write(buildRDB())
+			conn.Write(resp.BuildRDB())
 			replicaManager.Add(conn)
 			continue
 		case "WAIT":

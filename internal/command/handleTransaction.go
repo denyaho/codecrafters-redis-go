@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"	
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"fmt"
 )
 
@@ -23,7 +24,7 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 	}
 	intValue++
 	st.Set(key, strconv.Itoa(intValue), 0)
-	return []byte(":" + strconv.Itoa(intValue) + "\r\n")
+	return resp.BuildInteger(intValue)
 }
 
 func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
