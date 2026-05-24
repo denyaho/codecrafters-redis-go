@@ -114,6 +114,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 				replicaManager.PropagateCommand(args)
 			}
 		}
+		fmt.Printf("Sending response: %s\n", string(response))
 		conn.Write(response)
 	}
 }
