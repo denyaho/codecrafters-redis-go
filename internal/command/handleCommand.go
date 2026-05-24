@@ -118,7 +118,7 @@ func handleBLpop(st *store.ExpireMap, args []string) []byte {
 	response, ok, istimeout := st.BLPop(args[1], timeout)
 	fmt.Printf("BLPop result: response=%s, ok=%v, istimeout=%v\n", response, ok, istimeout)
 	if istimeout {
-		return resp.BuildArray([]string{})
+		return resp.BuildNullArray()
 	} else if !ok {
 		return resp.BuildNullArray()
 	}
