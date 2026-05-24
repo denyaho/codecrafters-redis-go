@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
@@ -14,22 +14,22 @@ import (
 
 func handleType(st *store.ExpireMap, args []string) []byte {
 	if len(args) < 2 {
-		return []byte("-ERR wrong number of arguments for 'TYPE' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'TYPE' command")
 	}
 	value, ok := st.Get(args[1])
 	if !ok {
-		return []byte("+none\r\n")
+		return resp.BuildError("none")
 	}
 
 	switch value.(type) {	
 	case string:
-		return []byte("+string\r\n")
+		return resp.BuildError("string")
 	case []string:
-		return []byte("+list\r\n")
+		return resp.BuildError("list")
 	case []store.StreamEntry:
-		return []byte("+stream\r\n")
+		return resp.BuildError("stream")
 	default:
-		return []byte("+none\r\n")
+		return resp.BuildError("none")
 	}
 }
 
@@ -145,14 +145,14 @@ func handleXAdd(st *store.ExpireMap, args []string) []byte {
 
 	entryID, err := _resolveStreamID(entryID, prevID, st)
 	if err != nil {
-		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+		return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
 	}
 	_, err = _validateStreamID(entryID, prevID)
 	if err != nil {
-		return []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+		return resp.BuildError(fmt.Sprintf("%s\r\n", err.Error()))
 	}
 	st.XAdd(key, entryID, pairs)
-	return []byte(fmt.Sprintf("$%d\r\n%s\r\n",len(entryID), entryID))
+	return resp.BuildBulkStrings(entryID)
 }
 
 func _normalizeStreamID(id string) (string, error) {

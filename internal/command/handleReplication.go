@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
+	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 )
@@ -28,74 +28,73 @@ func handleInfo(st *store.ExpireMap, args []string, role, replID string) []byte 
 	for _, kv := range fields {
 		body += fmt.Sprintf("%s:%s\r\n", kv[0], kv[1])
 	}
-	response := []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(body), body))
-	return response
+	return resp.BuildBulkStrings(body)
 }
 
 func handleREPLCONF(st *store.ExpireMap, args []string, rm *replication.ReplicaManager) []byte {
 	if len(args) < 3 {
-		return []byte("-ERR wrong number of arguments for 'REPLCONF' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'REPLCONF' command")
+
 	}
 	for i := 1; i < len(args); i += 2 {
 		if i+1 >= len(args) {
-			return []byte("-ERR wrong number of arguments for 'REPLCONF' command\r\n")
+			return resp.BuildError("ERR wrong number of arguments for 'REPLCONF' command")
 		}
 		if args[i] == "listening-port" {
-			return []byte("+OK\r\n")
+			return resp.BuildSimpleString("OK")
 		}
 		if args[i] == "capa" {
-			return []byte("+OK\r\n")
+			return resp.BuildSimpleString("OK")
 		}
 		if args[i] == "ACK" {
 			offset := args[i+1]
 			offsetInt, err := strconv.ParseInt(offset, 10, 64)
 			if err != nil {
-				return []byte("-ERR invalid offset for 'ACK' in 'REPLCONF' command\r\n")
+				return resp.BuildError("ERR invalid offset for 'ACK' in 'REPLCONF' command")
 			}
 			rm.AckChan <- offsetInt
 			return nil
 		}
 	}
-	return []byte("-ERR unknown REPLCONF option\r\n")
+
+	return resp.BuildError("ERR unknown REPLCONF option")
 }
 
 var RDBcontent, _ = hex.DecodeString("524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2")
 
 func buildRDB() []byte {
-	return []byte(fmt.Sprintf("$%d\r\n%s", len(RDBcontent), RDBcontent))
+	return resp.BuildBulkStrings(string(RDBcontent))
 }
 
 func handlePSYNC(st *store.ExpireMap, args []string, replID string) []byte {
 	if len(args) < 3 {
-		return []byte("-ERR wrong number of arguments for 'PSYNC' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'PSYNC' command")
 	}
 	offset := args[2]
 	if offset == "-1" {
 		offset = "0"
 	}
 	if args[1] == "?" {
-		return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))
+		return resp.BuildSimpleString(fmt.Sprintf("+FULLRESYNC %s %s", replID, offset))
 	}
-	return []byte(fmt.Sprintf("+FULLRESYNC %s %s\r\n", replID, offset))	
+	return resp.BuildSimpleString(fmt.Sprintf("+FULLRESYNC %s %s", replID, offset))	
 }
 
 func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 	if len(args) != 3 {
-		return []byte("-ERR wrong number of arguments for 'WAIT' command\r\n")
+		return resp.BuildError("ERR wrong number of arguments for 'WAIT' command")
 	}
 	numreplicas, err := strconv.Atoi(args[1])
 	if err != nil {
-		return []byte("-ERR invalid number of replicas\r\n")
+		return resp.BuildError("ERR invalid number of replicas")
 	}
 	timeout, err := strconv.Atoi(args[2])
 	if err != nil {
-		return []byte("-ERR invalid timeout\r\n")
+		return resp.BuildError("ERR invalid timeout")
 	}
-	// if numreplicas == 0 || len(rm.Connections) == 0 {
-    //   return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))}
-	
+
 	if rm.Masteroffset == 0 {
-		return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
+		return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
 	}
 	
 	var timer <- chan time.Time
@@ -103,7 +102,7 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 		timer = time.After(time.Duration(timeout) * time.Millisecond)
 	}
 	if timeout == 0 {
-		return []byte(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
+		return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", len(rm.Connections)))
 	}
 
 	acked := 0
@@ -113,10 +112,10 @@ func handleWAIT(args []string, rm *replication.ReplicaManager) []byte {
 		case <-rm.AckChan:
 			acked++
 			if acked >= numreplicas {
-				return []byte(fmt.Sprintf(":%d\r\n", acked))
+				return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", acked))
 			}
 		case <-timer:
-			return []byte(fmt.Sprintf(":%d\r\n", acked))
+			return resp.BuildBulkStrings(fmt.Sprintf(":%d\r\n", acked))
 		}
 	}	
 }

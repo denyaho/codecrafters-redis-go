@@ -7,20 +7,23 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
+	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 )
 
 type Server struct {
 	addr string
 	st   *store.ExpireMap
 	replicaManager *replication.ReplicaManager
+	rdbConfig *rdb.RDB
 }
 
-func New(port, address, role, masterAddr string) *Server {
+func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB) *Server {
 	full_address := address + ":" + port
 	return &Server{
 		addr: full_address,
 		st: store.NewExpireMap(),
 		replicaManager: replication.NewReplicaManager(role, masterAddr),
+		rdbConfig: rdbconfig,
 	}
 }
 
@@ -43,7 +46,7 @@ func (s *Server) StartServer() {
 			continue
 		}
 		go func(c net.Conn) {
-			handler.HandleConnection(c, s.st, s.replicaManager)
+			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig)
 		}(conn)
 	}
 }

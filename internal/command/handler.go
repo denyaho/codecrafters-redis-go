@@ -10,10 +10,11 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
+	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 )
 
 
-func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager) {
+func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB) {
 	defer conn.Close()
 
 	ticker := time.NewTicker(time.Second)
@@ -104,12 +105,13 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			continue
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
+		case "CONFIG":
+			response = handleCONFIG(args, rdbConfig)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
 			if strings.ToUpper(args[0]) == command {
 				replicaManager.PropagateCommand(args)
-
 			}
 		}
 		conn.Write(response)

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"github.com/codecrafters-io/redis-starter-go/internal/server"
+	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"strings"
 )
 
@@ -19,10 +20,13 @@ func main() {
 	masterPort := ""
 	masterAddr := ""
 	role := "master"
+	rdbdir := ""
+	dbfilename := ""
+
+
 	for i, arg := range os.Args {
 		if arg == "--port" && i+1 < len(os.Args) {
 			port = os.Args[i+1]
-			role = "slave"
 		}
 		if arg == "--replicaof" && i+1 < len(os.Args) {
 			role = "slave"
@@ -34,9 +38,16 @@ func main() {
 			masterAddr = masterInfo[0]
 			masterPort = masterInfo[1]
 		}
+		if arg == "--dir" && i+1 <len(os.Args) {
+			rdbdir = os.Args[i+1]
+		}
+		if arg == "--dbfilename" && i+1 <len(os.Args) {
+			dbfilename = os.Args[i+1]
+		}
 	}
+	rdb := rdb.NewRDB(rdbdir, dbfilename)
 	fmt.Println("Logs from your program will appear here!")
-	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort)
+	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
 	//

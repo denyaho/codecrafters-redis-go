@@ -11,18 +11,18 @@ import (
 )
 
 func _sendPing() []byte {
-	return []byte("*1\r\n$4\r\nPING\r\n")
+	return resp.BuildArray([]string{"PING"})
 }
 
 func _sendREPLCONF(isFirst bool) []byte {
 	if isFirst {
-		return []byte("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n6380\r\n")
+		return resp.BuildArray([]string{"REPLCONF", "listening-port", "6380"})
 	}
-	return []byte("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n")
+	return resp.BuildArray([]string{"REPLCONF", "capa", "psync2"})
 }
 
 func _sendPSYNC() []byte {
-	return []byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")
+	return resp.BuildArray([]string{"PSYNC", "?", "-1"})
 }
 
 func _respondACK(offset int64) []byte {
