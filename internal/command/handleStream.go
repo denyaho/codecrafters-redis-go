@@ -29,7 +29,7 @@ func handleType(st *store.ExpireMap, args []string) []byte {
 	case []store.StreamEntry:
 		return resp.BuildSimpleString("stream")
 	default:
-		return resp.BuildSimpleString("none")
+		return resp.BuildError("none")
 	}
 }
 
