@@ -164,6 +164,7 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 		return err
 	}
 	fmt.Printf("RDB version: %d\n", r.version)
+	fmt.Printf("RDB metadata: %v\n", r.metadata["redis-ver"])
 	for p.pos < len(p.data) {
 		switch p.data[p.pos] {
 			case 0xFA:

@@ -45,7 +45,7 @@ func main() {
 			dbfilename = os.Args[i+1]
 		}
 	}
-	rdb := rdb.NewRDB(rdbdir, dbfilename,)
+	rdb := rdb.NewRDB(rdbdir, dbfilename)
 	fmt.Println("Logs from your program will appear here!")
 	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb)
 	server.StartServer()
