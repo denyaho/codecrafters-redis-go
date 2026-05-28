@@ -199,6 +199,7 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 				return nil
 			default:
 				if p.data[p.pos] == 0x00 {
+					fmt.Printf("Parsing key-value pair at position %d\n", p.pos)
 					err := p.handleKeyValuePair(st, 0)
 					if err != nil {
 						return err
