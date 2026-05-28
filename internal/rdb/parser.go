@@ -165,6 +165,7 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 	}
 	fmt.Printf("RDB version: %d\n", r.version)
 	for p.pos < len(p.data) {
+		fmt.Printf("Parsing RDB at position %d\n", p.pos)
 		switch p.data[p.pos] {
 			case 0xFA:
 				err := p.readMetaData(r)
@@ -172,9 +173,7 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 					return err
 				}
 				fmt.Printf("RDB metadata: %v\n", r.metadata["redis-ver"])
-
 			case 0xFB:
-				fmt.Printf("Parsing auxiliary field at position %d\n", p.pos)
 				err := p.readResizeDB(r)
 				if err != nil {
 					return err
@@ -200,7 +199,6 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 				return nil
 			default:
 				if p.data[p.pos] == 0x00 {
-					fmt.Printf("Parsing key-value pair at position %d\n", p.pos)
 					err := p.handleKeyValuePair(st, 0)
 					if err != nil {
 						return err
