@@ -5,6 +5,7 @@ import (
 	"time"
 	"errors"
 	"strings"
+	"path"
 )
 
 type StreamEntry struct {
@@ -23,6 +24,19 @@ type ExpireMap struct {
 	signals map[string]chan struct{}
 }
 
+
+func (m *ExpireMap) Keys(key string) []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	keys := make([]string, 0, len(m.data))
+	for k := range m.data {
+		matched, err := path.Match(key, k)
+		if err == nil && matched {
+			keys = append(keys, k)
+		}
+	}
+	return keys
+}
 
 func (m *ExpireMap) Set(key string, value any, expireAt time.Duration) {
 	m.mu.Lock()

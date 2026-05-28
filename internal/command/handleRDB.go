@@ -3,7 +3,9 @@ package handler
 import (
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
+
 
 func handleCONFIG(args []string, rdbConfig *rdb.RDB) []byte {
 	if args[1] == "GET" {
@@ -15,4 +17,14 @@ func handleCONFIG(args []string, rdbConfig *rdb.RDB) []byte {
 		}
 	}
 	return resp.BuildError("ERR Unsupported CONFIG subcommand")
+}
+
+
+func handleKEY(args []string, rdbConfig *rdb.RDB, st *store.ExpireMap) []byte {
+	if len(args) != 2 {
+		return resp.BuildError("ERR wrong number of arguments for 'KEY' command")
+	}		
+	rdbConfig.ReadFile(st)
+	keys := st.Keys(args[1])
+	return resp.BuildArray(keys)
 }
