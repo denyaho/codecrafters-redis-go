@@ -107,7 +107,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			response = handleWAIT(args, replicaManager)
 		case "CONFIG":
 			response = handleCONFIG(args, rdbConfig)
-		case "KEY":
+		case "KEYS":
 			response = handleKEY(args, rdbConfig,st)
 		}
 		PropagateCommands := []string{"SET"}
