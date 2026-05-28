@@ -24,6 +24,9 @@ func NewRDB(dir, dbfilename string) *RDB {
 	return &RDB{
 		Dir: dir,
 		DBfilename: dbfilename,
+		metadata: make(map[string]string),
+		version : 0,
+		DBs: make([]DBInfo, 0),
 	}
 }
 
