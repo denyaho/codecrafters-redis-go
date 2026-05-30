@@ -26,7 +26,10 @@ func handleKEY(args []string, rdbConfig *rdb.RDB, st *store.ExpireMap) []byte {
 		return resp.BuildError("ERR wrong number of arguments for 'KEY' command")
 	}
 	fmt.Printf("Loading RDB file: %s/%s\n", rdbConfig.Dir, rdbConfig.DBfilename)
-	rdbConfig.ReadFile(st)
+	err := rdbConfig.ReadFile(st)
+	if err != nil {
+		return resp.BuildError(fmt.Sprintf("ERR failed to load RDB file: %v", err))
+	}
 	keys := st.Keys(args[1])
 	return resp.BuildArray(keys)
 }
