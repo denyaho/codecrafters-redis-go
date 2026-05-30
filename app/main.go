@@ -55,6 +55,7 @@ func main() {
 			fmt.Printf("Failed to load RDB file: %v\n", err)
 			os.Exit(1)
 		}
+	}
 	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
