@@ -153,6 +153,7 @@ func (p *RDBParser) readResizeDB(r *RDB) error {
 }
 
 func (p *RDBParser) handleKeyValuePair(st *store.ExpireMap, expireAt time.Duration) error {
+	fmt.Printf("Handling key-value pair at position %d with expireAt %v\n", p.pos, expireAt)
 	var key, value string
 	var err error
 	switch p.data[p.pos] {
