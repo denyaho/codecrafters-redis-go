@@ -126,19 +126,22 @@ func (p *RDBParser) readResizeDB(r *RDB) error {
 }
 
 func (p *RDBParser) handleKeyValuePair(st *store.ExpireMap, expireAt time.Duration) error {
+	var key, value string
+	var err error
 	switch p.data[p.pos] {
 		case 0x00:
 			p.pos++
-			key, err := p.readEncodedString()
+			key, err = p.readEncodedString()
 			if err != nil {
 				return err
 			}
-			value, err := p.readEncodedString()
+			value, err = p.readEncodedString()
 			if err != nil {
 				return err
 			}
 			st.Set(key, value, expireAt)
 	}
+	fmt.Printf("Key-value pair loaded: key=%s, value=%s, expireAt=%v\n", key, value, expireAt)
 	return nil
 }
 
@@ -207,7 +210,6 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 					return fmt.Errorf("invalid RDB file: unexpected byte %x at position %d", p.data[p.pos], p.pos)
 				}
 		}
-		fmt.Printf("data is %v", p.data)
 	}
 	return nil
 
