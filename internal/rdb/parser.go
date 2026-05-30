@@ -207,6 +207,7 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 					return fmt.Errorf("invalid RDB file: unexpected byte %x at position %d", p.data[p.pos], p.pos)
 				}
 		}
+		fmt.Printf("data is %v", p.data)
 	}
 	return nil
 }
