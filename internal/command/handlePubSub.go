@@ -18,6 +18,7 @@ func handleSubscribedMode(c *client.Client, args []string) []byte {
 
 	switch strings.ToUpper(args[0]) {
 		case "SUBSCRIBE":
+			return handleSUBSCRIBE(args, c)
 		case "UNSUBSCRIBE":
 		case "PSUBSCRIBE":
 		case "PUNSUBSCRIBE":
