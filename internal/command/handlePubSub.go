@@ -23,6 +23,7 @@ func handleSubscribedMode(c *client.Client, args []string) []byte {
 		case "PSUBSCRIBE":
 		case "PUNSUBSCRIBE":
 		case "PING":
+			return resp.BuildArray([]string{"pong", ""})
 		case "QUIT":
 			
 	}
