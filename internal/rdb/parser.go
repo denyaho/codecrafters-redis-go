@@ -45,6 +45,7 @@ func (p *RDBParser) readHeader(data []byte, r *RDB) error {
 func (p *RDBParser) readLength() (int, error) {
 	top := p.data[p.pos]
 	p.pos++
+	fmt.Printf("Read byte : %v\n", top>>6)
 	switch top >> 6 {
 		case 0b00:
 			return int(top & 0b00111111), nil
