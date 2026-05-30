@@ -27,7 +27,6 @@ func handleKEY(args []string, rdbConfig *rdb.RDB, st *store.ExpireMap) []byte {
 	}
 	fmt.Printf("Loading RDB file: %s/%s\n", rdbConfig.Dir, rdbConfig.DBfilename)
 	rdbConfig.ReadFile(st)
-	fmt.Printf("RDB file loaded successfully\n")
 	keys := st.Keys(args[1])
 	return resp.BuildArray(keys)
 }

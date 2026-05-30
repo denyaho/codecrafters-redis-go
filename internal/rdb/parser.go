@@ -171,27 +171,32 @@ func (p *RDBParser) Parse(r *RDB, st *store.ExpireMap) error {
 		fmt.Printf("Parsing RDB at position %d\n", p.pos)
 		switch p.data[p.pos] {
 			case 0xFA:
+				fmt.Println("Reading 0xFA metadata")
 				err := p.readMetaData(r)
 				if err != nil {
 					return err
 				}
 				fmt.Printf("RDB metadata: %v\n", r.metadata["redis-ver"])
 			case 0xFB:
+				fmt.Println("Reading 0xFB resize DB")
 				err := p.readResizeDB(r)
 				if err != nil {
 					return err
 				}
 			case 0xFC:
+				fmt.Println("Reading 0xFC expiry ms")
 				err := p.readExpiryms(r, st)
 				if err != nil {
 					return err
 				}
 			case 0xFD:
+				fmt.Println("Reading 0xFD expiry sec")
 				err := p.readExpirysec(r, st)
 				if err != nil {
 					return err
 				}
 			case 0xFE:
+				fmt.Println("Reading 0xFE DB select")
 				err := p.readDBSelect(r)
 				if err != nil {
 					return err
