@@ -60,9 +60,9 @@ func (p *RDBParser) readLength() (int, error) {
 			p.pos += 4
 			return int(next), nil			
 		case 0b11:
-			fmt.Printf("Reading length with special encoding: %d\n", top & 0b00111111)
 			switch top & 0b00111111 {
 				case 0:
+					fmt.Printf("Reading 6-bit length: %d\n", top & 0b00111111)
 					next := p.data[p.pos]
 					p.pos++
 					return int(next), nil
