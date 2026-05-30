@@ -59,33 +59,35 @@ func (p *RDBParser) readLength() (int, error) {
 			next := binary.BigEndian.Uint32(p.data[p.pos : p.pos+4])
 			p.pos += 4
 			return int(next), nil			
-		case 0b11:
-			switch top & 0b00111111 {
-				case 0:
-					fmt.Printf("Reading 6-bit length: %d\n", top & 0b00111111)
-					next := p.data[p.pos]
-					p.pos++
-					return int(next), nil
-				case 1:
-					if p.pos + 2 > len(p.data) {
-						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
-					}
-					next := p.data[p.pos:p.pos+2]
-					p.pos += 2
-					return int(binary.BigEndian.Uint16(next)), nil
-				case 2:
-					if p.pos + 4 > len(p.data) {
-						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
-					}
-					next := p.data[p.pos:p.pos+4]
-					p.pos += 4
-					return int(binary.BigEndian.Uint32(next)), nil
-			}
 	}
 	return 0, fmt.Errorf("invalid RDB file: invalid length encoding")
 }
 
 func (p *RDBParser) readEncodedString() (string, error) {
+	top := p.data[p.pos]
+	if top >> 6 == 0b11 {
+		p.pos++
+		switch top & 0b00111111 {
+			case 0:
+				next := p.data[p.pos]
+				p.pos++
+				return strconv.Itoa(int(next)), nil
+			case 1:
+				if p.pos + 2 > len(p.data) {
+					return "", fmt.Errorf("invalid RDB file: unexpected end of data while reading encoded string")
+				}
+				next := p.data[p.pos:p.pos+2]
+				p.pos += 2
+				return strconv.Itoa(int(binary.BigEndian.Uint16(next))), nil
+			case 2:
+				if p.pos + 4 > len(p.data) {
+					return "", fmt.Errorf("invalid RDB file: unexpected end of data while reading encoded string")
+				}
+				next := p.data[p.pos:p.pos+4]
+				p.pos += 4
+				return strconv.Itoa(int(binary.BigEndian.Uint32(next))), nil
+		}
+	}
 	length, err := p.readLength()
 	if err != nil {
 		fmt.Printf("Failed to read length of encoded string: %v\n", err)
