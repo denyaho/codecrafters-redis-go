@@ -8,25 +8,27 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 )
 
-func handleSUBSCRIBE(args []string, c *pubsub.Client) []byte {
-	c.Subscribe(args[1])
-	return resp.BuildArrayForPUBSUB([]string{"subscribe", args[1]}, c.SubscriptionCount)
+func handleSUBSCRIBE(channel string, c *pubsub.Client) []byte {
+	c.Subscribe(channel)
+	return resp.BuildArrayForPUBSUB([]string{"subscribe", channel}, c.SubscriptionCount)
 }
 
-func handleUNSUBSCRIBE(args []string, c *pubsub.Client) []byte {
-	c.Unsubscribe(args[1])
-	return resp.BuildArrayForPUBSUB([]string{"unsubscribe", args[1]}, c.SubscriptionCount)
+func handleUNSUBSCRIBE(channel string, c *pubsub.Client) []byte {
+	c.Unsubscribe(channel)
+	return resp.BuildArrayForPUBSUB([]string{"unsubscribe", channel}, c.SubscriptionCount)
 }
 
 
 
 
 func handleSubscribedMode(c *pubsub.Client, args []string) []byte {
-	switch strings.ToUpper(args[0]) {
+	command := args[0]
+	channel := args[1]
+	switch strings.ToUpper(command) {
 		case "SUBSCRIBE":
-			return handleSUBSCRIBE(args, c)
+			return handleSUBSCRIBE(channel, c)
 		case "UNSUBSCRIBE":
-			return handleUNSUBSCRIBE(args, c)
+			return handleUNSUBSCRIBE(channel, c)
 		case "PSUBSCRIBE":
 		case "PUNSUBSCRIBE":
 		case "PING":
