@@ -81,6 +81,7 @@ func (p *RDBParser) readMetaData(r *RDB) error {
 	p.pos++
 	key, err := p.readEncodedString()
 	if err != nil {
+		fmt.Println("Failed to read metadata key: ", err.Error())
 		return err
 	}
 	value, err := p.readEncodedString()
