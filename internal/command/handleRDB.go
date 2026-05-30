@@ -4,7 +4,6 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
-	"fmt"
 )
 
 
