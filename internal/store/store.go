@@ -1,11 +1,12 @@
 package store
 
 import (
+	"errors"
+	"fmt"
+	"path"
+	"strings"
 	"sync"
 	"time"
-	"errors"
-	"strings"
-	"path"
 )
 
 type StreamEntry struct {
@@ -41,6 +42,8 @@ func (m *ExpireMap) Keys(key string) []string {
 func (m *ExpireMap) Set(key string, value any, expireAt time.Duration) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	fmt.Printf("setting key: %v, value: %v", key, value)
 
 	var exp int64
 	if expireAt == 0 {
