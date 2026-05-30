@@ -25,5 +25,5 @@ func handleSubscribedMode(c *client.Client, args []string) []byte {
 		case "QUIT":
 			
 	}
-	return resp.BuildError(fmt.Sprintf("- ERR Can't execute '%s': only (P|S)SUBSCRIBE / (P|S)UNSUBSCRIBE / PING / QUIT / RESET are allowed in this context ", args[0]))
+	return resp.BuildError(fmt.Sprintf("ERR Can't execute '%s': only (P|S)SUBSCRIBE / (P|S)UNSUBSCRIBE / PING / QUIT / RESET are allowed in this context ", args[0]))
 }
