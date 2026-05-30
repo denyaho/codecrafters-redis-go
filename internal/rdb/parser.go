@@ -62,18 +62,18 @@ func (p *RDBParser) readLength() (int, error) {
 		case 0b11:
 			fmt.Printf("Reading length with special encoding: %d\n", top & 0b00111111)
 			switch top & 0b00111111 {
-				case 0x00:
+				case 0:
 					next := p.data[p.pos]
 					p.pos++
 					return int(next), nil
-				case 0x01:
+				case 1:
 					if p.pos + 2 > len(p.data) {
 						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
 					}
 					next := p.data[p.pos:p.pos+2]
 					p.pos += 2
 					return int(binary.BigEndian.Uint16(next)), nil
-				case 0x02:
+				case 2:
 					if p.pos + 4 > len(p.data) {
 						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
 					}
