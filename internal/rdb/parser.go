@@ -60,6 +60,27 @@ func (p *RDBParser) readLength() (int, error) {
 			next := binary.BigEndian.Uint32(p.data[p.pos : p.pos+4])
 			p.pos += 4
 			return int(next), nil			
+		case 0b11:
+			switch top & 0b00111111 {
+				case 0x00:
+					next := p.data[p.pos]
+					p.pos++
+					return int(next), nil
+				case 0x01:
+					if p.pos + 2 > len(p.data) {
+						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
+					}
+					next := p.data[p.pos:p.pos+2]
+					p.pos += 2
+					return int(binary.BigEndian.Uint16(next)), nil
+				case 0x02:
+					if p.pos + 4 > len(p.data) {
+						return 0, fmt.Errorf("invalid RDB file: unexpected end of data while reading length")
+					}
+					next := p.data[p.pos:p.pos+4]
+					p.pos += 4
+					return int(binary.BigEndian.Uint32(next)), nil
+			}
 	}
 	return 0, fmt.Errorf("invalid RDB file: invalid length encoding")
 }
