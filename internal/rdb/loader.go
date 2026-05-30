@@ -32,6 +32,9 @@ func NewRDB(dir, dbfilename string) *RDB {
 
 
 func (r *RDB) ReadFile(st *store.ExpireMap) error {
+	if r.Dir == "" || r.DBfilename == "" {
+		return os.ErrNotExist
+	}
 	data, err := os.ReadFile(r.Dir + "/" + r.DBfilename)
 	if err != nil {
 		return err
