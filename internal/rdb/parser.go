@@ -61,6 +61,7 @@ func (p *RDBParser) readLength() (int, error) {
 			p.pos += 4
 			return int(next), nil			
 		case 0b11:
+			fmt.Println("Reading 0b11")
 			switch top & 0b00111111 {
 				case 0x00:
 					next := p.data[p.pos]
