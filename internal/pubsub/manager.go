@@ -29,7 +29,7 @@ func (m *Manager) Publish(channel,message string) []byte {
 
 	count := 0
 	for _, client := range m.channels[channel]{
-		client.Connection.Write([]byte(message))
+		client.Connection.Write(resp.BuildArrayForPUBLISH(channel, message))
 		count++
 	}
 	return resp.BuildInteger(count)
