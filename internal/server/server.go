@@ -8,6 +8,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
+	"github.com/codecrafters-io/redis-starter-go/internal/client"
 )
 
 type Server struct {
@@ -40,16 +41,16 @@ func (s *Server) StartServer() {
 		os.Exit(1)
 	}
 
-
 	for {
 		conn, err := l.Accept()
+		c := client.NewClient(conn)
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
 		}
-		go func(c net.Conn) {
+		go func(c *client.Client) {
 			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig)
-		}(conn)
+		}(c)
 	}
 }
 

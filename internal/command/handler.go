@@ -3,7 +3,6 @@ package handler
 import (
 	"bufio"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
@@ -11,16 +10,17 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
+	"github.com/codecrafters-io/redis-starter-go/internal/client"
 )
 
 
-func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB) {
-	defer conn.Close()
+func HandleConnection(c *client.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB) {
+	defer c.Connection.Close()
 
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
-	reader := bufio.NewReader(conn)
+	reader := bufio.NewReader(c.Connection)
 	var response []byte
 
 	role := replicaManager.Role
@@ -33,12 +33,12 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		if isMulti && strings.ToUpper(args[0]) != "EXEC" && strings.ToUpper(args[0]) != "DISCARD" {
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
-			conn.Write(response)
+			c.Connection.Write(response)
 			continue
 		}
 		if err != nil {
 			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
-			conn.Write(response)
+			c.Connection.Write(response)
 			return
 		}
 		fmt.Printf("Received command: %v\n", args)
@@ -99,9 +99,9 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			response = handleREPLCONF(st, args, replicaManager)
 		case "PSYNC":
 			response = handlePSYNC(st, args, replID)
-			conn.Write(response)
-			conn.Write(resp.BuildRDB())
-			replicaManager.Add(conn)
+			c.Connection.Write(response)
+			c.Connection.Write(resp.BuildRDB())
+			replicaManager.Add(c.Connection)
 			continue
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
@@ -110,7 +110,7 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 		case "KEYS":
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":
-			response = handleSUBSCRIBE(args)
+			response = handleSUBSCRIBE(args, c)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
@@ -119,6 +119,6 @@ func HandleConnection(conn net.Conn, st *store.ExpireMap, replicaManager *replic
 			}
 		}
 		fmt.Printf("Sending response: %s\n", string(response))
-		conn.Write(response)
+		c.Connection.Write(response)
 	}
 }
