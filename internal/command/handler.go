@@ -11,7 +11,6 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"github.com/codecrafters-io/redis-starter-go/internal/pubsub"
-	"net"
 )
 
 
@@ -121,9 +120,6 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			ps.Subscribe(c, args[1])
 		case "PUBLISH":
 			response = handlePUBLISH(args[1], args[2], ps)
-			count := ps.Publish(args[1])
-
-			response = []byte(fmt.Sprintf(":%d\r\n", count))
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
