@@ -7,6 +7,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/server"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"strings"
+	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
 // Ensures gofmt doesn't remove the "net" and "os" imports in stage 1 (feel free to remove this!)
@@ -46,8 +47,15 @@ func main() {
 		}
 	}
 	rdb := rdb.NewRDB(rdbdir, dbfilename)
-	fmt.Println("Logs from your program will appear here!")
-	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb)
+	st := store.NewExpireMap()
+	if err := rdb.ReadFile(st); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("RDB file not found, starting with empty database")
+		} else {
+			fmt.Printf("Failed to load RDB file: %v\n", err)
+			os.Exit(1)
+		}
+	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
 	//

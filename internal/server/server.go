@@ -17,11 +17,11 @@ type Server struct {
 	rdbConfig *rdb.RDB
 }
 
-func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB) *Server {
+func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.ExpireMap) *Server {
 	full_address := address + ":" + port
 	return &Server{
 		addr: full_address,
-		st: store.NewExpireMap(),
+		st: st,
 		replicaManager: replication.NewReplicaManager(role, masterAddr),
 		rdbConfig: rdbconfig,
 	}
@@ -39,6 +39,8 @@ func (s *Server) StartServer() {
 		fmt.Printf("Failed to bind to port %s: %v\n", s.addr, err)
 		os.Exit(1)
 	}
+
+
 	for {
 		conn, err := l.Accept()
 		if err != nil {
