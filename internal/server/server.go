@@ -8,7 +8,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
-	"github.com/codecrafters-io/redis-starter-go/internal/client"
+	"github.com/codecrafters-io/redis-starter-go/internal/pubsub"
 )
 
 type Server struct {
@@ -16,6 +16,7 @@ type Server struct {
 	st   *store.ExpireMap
 	replicaManager *replication.ReplicaManager
 	rdbConfig *rdb.RDB
+	pubsubManager *pubsub.Manager
 }
 
 func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.ExpireMap) *Server {
@@ -25,6 +26,7 @@ func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.E
 		st: st,
 		replicaManager: replication.NewReplicaManager(role, masterAddr),
 		rdbConfig: rdbconfig,
+		pubsubManager: pubsub.NewManager(),
 	}
 }
 
@@ -43,13 +45,13 @@ func (s *Server) StartServer() {
 
 	for {
 		conn, err := l.Accept()
-		c := client.NewClient(conn)
+		c := pubsub.NewClient(conn)
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue
 		}
-		go func(c *client.Client) {
-			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig)
+		go func(c *pubsub.Client) {
+			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig, s.pubsubManager)
 		}(c)
 	}
 }

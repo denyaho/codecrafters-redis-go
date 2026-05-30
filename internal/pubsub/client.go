@@ -1,4 +1,4 @@
-package client
+package pubsub
 
 import (
 	"net"
@@ -30,5 +30,15 @@ func (c *Client) Subscribe(channel string) {
 	if _, exists := c.SubscribedChannels[channel]; !exists {
 		c.SubscribedChannels[channel] = struct{}{}
 		c.SubscriptionCount++
+	}
+}
+
+func (c *Client) Unsubscribe(channel string) {
+	if _, exists := c.SubscribedChannels[channel]; exists {
+		delete(c.SubscribedChannels, channel)
+		c.SubscriptionCount--
+		if c.SubscriptionCount == 0 {
+			c.IsSubscribed = false
+		}
 	}
 }
