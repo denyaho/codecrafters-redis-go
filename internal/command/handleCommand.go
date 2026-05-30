@@ -33,6 +33,7 @@ func handleSet(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleGet(st *store.ExpireMap, args []string) []byte {
+	
 	if val, ok := st.Get(args[1]); ok {
 		return resp.BuildBulkStrings(val.(string))
 	} else {
