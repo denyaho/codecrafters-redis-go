@@ -30,6 +30,11 @@ func HandleConnection(c *client.Client, st *store.ExpireMap, replicaManager *rep
 	queue := [][]string{} 
 	for {
 		args, err :=resp.Parse(reader)
+		if c.IsSubscribed {
+			response = handleSubscribedMode(c, args)
+			c.Connection.Write(response)
+			continue
+		}
 		if isMulti && strings.ToUpper(args[0]) != "EXEC" && strings.ToUpper(args[0]) != "DISCARD" {
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
@@ -111,6 +116,7 @@ func HandleConnection(c *client.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":
 			response = handleSUBSCRIBE(args, c)
+			c.IsSubscribed = true
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{

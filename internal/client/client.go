@@ -11,6 +11,7 @@ type Client struct {
 	Connection         net.Conn
 	SubscribedChannels map[string]struct{}
 	SubscriptionCount  int
+	IsSubscribed bool
 }
 
 var id int64
@@ -21,6 +22,7 @@ func NewClient(conn net.Conn) *Client {
 		Connection:         conn,
 		SubscribedChannels: make(map[string]struct{}),
 		SubscriptionCount:  0,
+		IsSubscribed: false,
 	}
 }
 
