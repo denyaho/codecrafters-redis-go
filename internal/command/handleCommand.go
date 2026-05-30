@@ -18,6 +18,7 @@ func handleEcho(args []string) []byte {
 }
 
 func handleSet(st *store.ExpireMap, args []string) []byte {
+	fmt.Printf("handling set command with an value %v\n", args[2])
 	if len(args) >= 4 && strings.ToUpper(args[3]) == "PX" {
 				expireMs, _ := strconv.Atoi(args[4])
 				expireAt := time.Duration(expireMs) * time.Millisecond
@@ -33,7 +34,7 @@ func handleSet(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleGet(st *store.ExpireMap, args []string) []byte {
-	
+
 	if val, ok := st.Get(args[1]); ok {
 		return resp.BuildBulkStrings(val.(string))
 	} else {
