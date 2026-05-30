@@ -65,6 +65,7 @@ func (p *RDBParser) readLength() (int, error) {
 
 func (p *RDBParser) readEncodedString() (string, error) {
 	length, err := p.readLength()
+	fmt.Printf("Reading encoded string of length %d at position %d\n", length, p.pos)
 	if err != nil {
 		return "", err
 	}
