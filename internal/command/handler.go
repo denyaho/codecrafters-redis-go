@@ -115,8 +115,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "KEYS":
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":
-			response = handleSUBSCRIBE(args[1], c)
-			ps.Subscribe(c, args[1])
+			response = handleSUBSCRIBE(args[1], c, ps)
 		case "PUBLISH":
 			response = handlePUBLISH(args[1], args[2], ps)
 		}

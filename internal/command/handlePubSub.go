@@ -8,8 +8,9 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 )
 
-func handleSUBSCRIBE(channel string, c *pubsub.Client) []byte {
+func handleSUBSCRIBE(channel string, c *pubsub.Client, ps *pubsub.Manager) []byte {
 	c.Subscribe(channel)
+	ps.Subscribe(c, channel)
 	return resp.BuildArrayForPUBSUB([]string{"subscribe", channel}, c.SubscriptionCount)
 }
 
