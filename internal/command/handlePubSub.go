@@ -34,7 +34,7 @@ func handleSubscribedMode(c *pubsub.Client, args []string, ps *pubsub.Manager) [
 		case "PSUBSCRIBE":
 		case "PUNSUBSCRIBE":
 		case "PING":
-			return resp.BuildArray([]string{"pong", ""})
+			return resp.BuildArrayForPing()
 		case "QUIT":
 
 	}

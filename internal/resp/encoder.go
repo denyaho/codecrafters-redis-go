@@ -40,6 +40,8 @@ func BuildArray(arr []string) []byte {
 	return response
 }
 
+
+
 func BuildArrayForPUBSUB(arr []string, count int) []byte {
 	length := len(arr) + 1
 	response := []byte(fmt.Sprintf("*%d\r\n", length))
@@ -52,6 +54,10 @@ func BuildArrayForPUBSUB(arr []string, count int) []byte {
 
 func BuildArrayForPUBLISH(channel, msg string) []byte {
 	return BuildArray([]string{"message", channel, msg})
+}
+
+func BuildArrayForPing()[]byte {
+	return []byte(fmt.Sprintf("*2\r\n$4\r\npong\r\n$0\r\n\r\n"))
 }
 
 var RDBcontent, _ = hex.DecodeString("524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2")
