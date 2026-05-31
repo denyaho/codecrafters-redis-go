@@ -23,6 +23,21 @@ func (m *Manager) Subscribe(client *Client, channel string) {
 	m.channels[channel] = append(m.channels[channel], client)
 }
 
+func (m *Manager) Unsubscribe(client *Client, channel string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	clients := m.channels[channel]
+	var index int
+	for i, c := range clients {
+		if c.ID == client.ID {
+			index = i
+			break
+		}
+	}
+	m.channels[channel] = append(clients[:index], clients[index+1:]...)
+}
+
 func (m *Manager) Publish(channel,message string) []byte {
 	m.mu.Lock()
 	defer m.mu.Unlock()

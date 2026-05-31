@@ -30,6 +30,7 @@ func (c *Client) Subscribe(channel string) {
 	if _, exists := c.SubscribedChannels[channel]; !exists {
 		c.SubscribedChannels[channel] = struct{}{}
 		c.SubscriptionCount++
+		c.IsSubscribed = true
 	}
 }
 

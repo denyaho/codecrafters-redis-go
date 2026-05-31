@@ -13,22 +13,23 @@ func handleSUBSCRIBE(channel string, c *pubsub.Client) []byte {
 	return resp.BuildArrayForPUBSUB([]string{"subscribe", channel}, c.SubscriptionCount)
 }
 
-func handleUNSUBSCRIBE(channel string, c *pubsub.Client) []byte {
+func handleUNSUBSCRIBE(channel string, c *pubsub.Client, ps *pubsub.Manager) []byte {
 	c.Unsubscribe(channel)
+	ps.Unsubscribe(c, channel)
 	return resp.BuildArrayForPUBSUB([]string{"unsubscribe", channel}, c.SubscriptionCount)
 }
 
 
 
 
-func handleSubscribedMode(c *pubsub.Client, args []string) []byte {
+func handleSubscribedMode(c *pubsub.Client, args []string, ps *pubsub.Manager) []byte {
 	command := args[0]
 	channel := args[1]
 	switch strings.ToUpper(command) {
 		case "SUBSCRIBE":
 			return handleSUBSCRIBE(channel, c)
 		case "UNSUBSCRIBE":
-			return handleUNSUBSCRIBE(channel, c)
+			return handleUNSUBSCRIBE(channel, c, ps)
 		case "PSUBSCRIBE":
 		case "PUNSUBSCRIBE":
 		case "PING":

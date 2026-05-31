@@ -31,7 +31,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 	for {
 		args, err :=resp.Parse(reader)
 		if c.IsSubscribed {
-			response = handleSubscribedMode(c, args)
+			response = handleSubscribedMode(c, args, ps)
 			c.Connection.Write(response)
 			continue
 		}
@@ -116,7 +116,6 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":
 			response = handleSUBSCRIBE(args[1], c)
-			c.IsSubscribed = true
 			ps.Subscribe(c, args[1])
 		case "PUBLISH":
 			response = handlePUBLISH(args[1], args[2], ps)
