@@ -28,7 +28,7 @@ func handleSubscribedMode(c *pubsub.Client, args []string, ps *pubsub.Manager) [
 	channel := args[1]
 	switch strings.ToUpper(command) {
 		case "SUBSCRIBE":
-			return handleSUBSCRIBE(channel, c)
+			return handleSUBSCRIBE(channel, c, ps)
 		case "UNSUBSCRIBE":
 			return handleUNSUBSCRIBE(channel, c, ps)
 		case "PSUBSCRIBE":
