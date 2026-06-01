@@ -21,9 +21,9 @@ type Item struct{
 	expireAt int64
 }
 
-type SetEntry struct {
-	member string
-	score float64	
+type ZSetEntry struct {
+	Member string
+	Score  float64	
 }
 
 type ExpireMap struct {
@@ -32,38 +32,42 @@ type ExpireMap struct {
 	signals map[string]chan struct{}
 }
 
+
 func (m *ExpireMap) ZAdd(key string, score float64, member string) (int, error) {
-	
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	item, exist := m.data[key]
-	sortedSet, ok := item.value.([]SetEntry)
+	sortedSet, ok := item.value.([]ZSetEntry)
 
 	if exist && !ok {
 		return 0, ErrWrongType
 	}
 	if !exist {
-		sortedSet = []SetEntry{}
+		sortedSet = []ZSetEntry{}
 	}
 	updated := false
 	if exist{
 		for i, entry := range sortedSet {
-			if entry.member == member {
-				sortedSet[i].score = score
+			if entry.Member == member {
+				sortedSet[i].Score = score
 				updated = true
 			}
 		}
 	}
 	if !updated {
-		entry := SetEntry{
-			member: member,
-			score: score,
+		entry := ZSetEntry{
+			Member: member,
+			Score: score,
 		}
 		sortedSet = append(sortedSet, entry)
 	}
 	sort.SliceStable(sortedSet, func(i, j int) bool {
-		return sortedSet[i].score < sortedSet[j].score
+		if sortedSet[i].Score == sortedSet[j].Score {
+			return sortedSet[i].Member < sortedSet[j].Member
+		}
+		return sortedSet[i].Score < sortedSet[j].Score
 	})
 	m.data[key] = Item{value: sortedSet, expireAt: item.expireAt}
 	if updated {

@@ -120,6 +120,8 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handlePUBLISH(args[1], args[2], ps)
 		case "ZADD":
 			response = handleZADD(st, args)
+		case "ZRANK":
+			response = handleZRANK(st, args)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{
