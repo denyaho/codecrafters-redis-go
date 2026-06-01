@@ -29,20 +29,31 @@ func handleZRANK(st *store.ExpireMap, args []string) []byte {
 	if len(args) != 3 {
 		return resp.BuildError("ERR wrong number of arguments for 'ZRANK' command")
 	}
+
+	index, err := st.ZRank(args[1], args[2])
+	if err != nil {
+		return resp.BuildError(err.Error())
+	}
+	if index == -1 {
+		return resp.BuildNullBulkString()
+	}
+	return resp.BuildInteger(index)
+}
+
+func handleZRANGE(st *store.ExpireMap, args []string) []byte {
+	if len(args) != 4 {
+		return resp.BuildError("ERR wrong number of arguments for 'ZRANGE' command")
+	}
 	key := args[1]
-	member := args[2]
-	item, exist := st.Get(key)
-	if !exist {
-		return resp.BuildNullBulkString()
+	start, err1 := strconv.Atoi(args[2])
+	end, err2 := strconv.Atoi(args[3])
+	if err1 != nil || err2 != nil {
+		return resp.BuildError("ERR value is not an integer")
 	}
-	zset, ok := item.([]store.ZSetEntry)
-	if !ok {
-		return resp.BuildNullBulkString()
+	members, err := st.ZRange(key, start, end)
+	if err != nil {
+		return resp.BuildError(err.Error())
 	}
-	for i, entry := range zset {
-		if entry.Member == member {
-			return resp.BuildInteger(i)
-		}
-	}
-	return resp.BuildNullBulkString()
+	return resp.BuildArray(members)
+
 }
