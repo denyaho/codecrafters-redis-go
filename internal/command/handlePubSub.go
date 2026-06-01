@@ -20,6 +20,18 @@ func handleUNSUBSCRIBE(channel string, c *pubsub.Client, ps *pubsub.Manager) []b
 	return resp.BuildArrayForPUBSUB([]string{"unsubscribe", channel}, c.SubscriptionCount)
 }
 
+func handlePSUBSCRIBE(pattern string, c *pubsub.Client, ps *pubsub.Manager) []byte {
+	c.PSubscribe(pattern)
+	ps.PSubscribe(c, pattern)
+	return resp.BuildArrayForPUBSUB([]string{"psubscribe", pattern}, c.SubscriptionCount)
+}
+
+func handlePUNSUBSCRIBE(pattern string, c *pubsub.Client, ps *pubsub.Manager) []byte {
+	c.PUnsubscribe(pattern)
+	ps.PUnsubscribe(c, pattern)
+	return resp.BuildArrayForPUBSUB([]string{"punsubscribe", pattern}, c.SubscriptionCount)
+}
+
 
 
 
@@ -33,10 +45,15 @@ func handleSubscribedMode(c *pubsub.Client, args []string, ps *pubsub.Manager) [
 			channel := args[1]
 			return handleUNSUBSCRIBE(channel, c, ps)
 		case "PSUBSCRIBE":
+			pattern := args[1]
+			return handlePSUBSCRIBE(pattern, c, ps)
 		case "PUNSUBSCRIBE":
+			pattern := args[1]
+			return handlePUNSUBSCRIBE(pattern, c, ps)
 		case "PING":
 			return resp.BuildArrayForPing()
 		case "QUIT":
+			
 
 	}
 	return resp.BuildError(fmt.Sprintf("ERR Can't execute '%s': only (P|S)SUBSCRIBE / (P|S)UNSUBSCRIBE / PING / QUIT / RESET are allowed in this context ", args[0]))

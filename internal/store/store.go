@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 	"time"
+	
 )
 
 type StreamEntry struct {
@@ -19,10 +21,55 @@ type Item struct{
 	expireAt int64
 }
 
+type SetEntry struct {
+	member string
+	score float64	
+}
+
 type ExpireMap struct {
 	data map[string]Item
 	mu sync.RWMutex
 	signals map[string]chan struct{}
+}
+
+func (m *ExpireMap) ZAdd(key string, score float64, member string) (int, error) {
+	
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	item, exist := m.data[key]
+	sortedSet, ok := item.value.([]SetEntry)
+
+	if exist && !ok {
+		return 0, ErrWrongType
+	}
+	if !exist {
+		sortedSet = []SetEntry{}
+	}
+	updated := false
+	if exist{
+		for i, entry := range sortedSet {
+			if entry.member == member {
+				sortedSet[i].score = score
+				updated = true
+			}
+		}
+	}
+	if !updated {
+		entry := SetEntry{
+			member: member,
+			score: score,
+		}
+		sortedSet = append(sortedSet, entry)
+	}
+	sort.SliceStable(sortedSet, func(i, j int) bool {
+		return sortedSet[i].score < sortedSet[j].score
+	})
+	m.data[key] = Item{value: sortedSet, expireAt: item.expireAt}
+	if updated {
+		return 0, nil
+	}
+	return 1, nil
 }
 
 
