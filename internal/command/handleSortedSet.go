@@ -33,11 +33,11 @@ func handleZRANK(st *store.ExpireMap, args []string) []byte {
 	member := args[2]
 	item, exist := st.Get(key)
 	if !exist {
-		return resp.BuildError("ERR no such key")
+		return resp.BuildNullBulkString()
 	}
 	zset, ok := item.([]store.ZSetEntry)
 	if !ok {
-		return resp.BuildError("ERR wrong type of value for 'ZRANK' command")
+		return resp.BuildNullBulkString()
 	}
 	for i, entry := range zset {
 		if entry.Member == member {
