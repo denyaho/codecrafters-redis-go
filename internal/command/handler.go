@@ -124,6 +124,8 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleZRANK(st, args)
 		case "ZRANGE":
 			response = handleZRANGE(st, args)
+		case "ZCARD":
+			response = handleZCARD(st, args)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{

@@ -57,3 +57,20 @@ func handleZRANGE(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildArray(members)
 
 }
+
+func handleZCARD(st *store.ExpireMap, args []string) []byte {
+	if len(args) != 2 {
+		return resp.BuildError("ERR wrong number of arguments for 'ZCARD' command")
+	}
+	key := args[1]
+	setentry, exist := st.Get(key)
+	val, ok := setentry.([]store.ZSetEntry)
+
+	if !exist {
+		return resp.BuildInteger(0)
+	}
+	if !ok {
+		return resp.BuildInteger(0)
+	}
+	return resp.BuildInteger(len(val))
+}
