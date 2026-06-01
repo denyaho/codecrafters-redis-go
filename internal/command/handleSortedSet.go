@@ -44,5 +44,5 @@ func handleZRANK(st *store.ExpireMap, args []string) []byte {
 			return resp.BuildInteger(i)
 		}
 	}
-	return resp.BuildError("ERR member not found")
+	return resp.BuildInteger(-1)
 }
