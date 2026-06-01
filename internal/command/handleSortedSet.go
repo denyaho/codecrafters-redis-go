@@ -13,8 +13,8 @@ func handleZADD(st *store.ExpireMap, args []string) []byte {
 	}
 
 	key := args[1]
-	member := args[2]
-	score, err := strconv.ParseFloat(args[3], 64)
+	member := args[3]
+	score, err := strconv.ParseFloat(args[2], 64)
 	if err != nil {
 		return resp.BuildError("ERR value is not a valid float")
 	}
