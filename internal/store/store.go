@@ -32,6 +32,21 @@ type ExpireMap struct {
 	signals map[string]chan struct{}
 }
 
+func (m *ExpireMap) ZCard(key string) (int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	item, exist := m.data[key]
+	sortedSet, ok := item.value.([]ZSetEntry)
+	if !exist {
+		return 0, nil
+	}
+	if !ok {
+		return 0, ErrWrongType
+	}
+	return len(sortedSet), nil
+}
+
 func (m *ExpireMap) ZRank(key, member string) (int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()

@@ -63,14 +63,8 @@ func handleZCARD(st *store.ExpireMap, args []string) []byte {
 		return resp.BuildError("ERR wrong number of arguments for 'ZCARD' command")
 	}
 	key := args[1]
-	setentry, exist := st.Get(key)
-	val, ok := setentry.([]store.ZSetEntry)
-
-	if !exist {
-		return resp.BuildInteger(0)
+	card, err := st.ZCard(key)
+	if err != nil {
+		return resp.BuildError(err.Error())
 	}
-	if !ok {
-		return resp.BuildInteger(0)
-	}
-	return resp.BuildInteger(len(val))
-}
+	return resp.BuildInteger(card)}
