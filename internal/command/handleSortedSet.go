@@ -67,4 +67,21 @@ func handleZCARD(st *store.ExpireMap, args []string) []byte {
 	if err != nil {
 		return resp.BuildError(err.Error())
 	}
-	return resp.BuildInteger(card)}
+	return resp.BuildInteger(card)
+}
+
+func handleZSCORE(st *store.ExpireMap, args []string) []byte {
+	if len(args) != 3 {
+		return resp.BuildError("ERR wrong number of arguments for 'ZSCORE' command")
+	}
+	key := args[1]
+	member := args[2]
+	score, err := st.ZScore(key, member)
+	if err != nil {
+		return resp.BuildError(err.Error())
+	}
+	if score == -1 {
+		return resp.BuildNullBulkString()
+	}
+	return resp.BuildBulkStrings(strconv.FormatFloat(score, 'f', -1, 64))
+}

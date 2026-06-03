@@ -47,6 +47,26 @@ func (m *ExpireMap) ZCard(key string) (int, error) {
 	return len(sortedSet), nil
 }
 
+func (m *ExpireMap) ZScore(key, member string) (float64, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	
+	item, exist := m.data[key]
+	sortedSet, ok := item.value.([]ZSetEntry)
+	if !exist {
+		return -1, nil
+	}
+	if !ok {
+		return -1, ErrWrongType
+	}
+	for _, entry := range sortedSet {
+		if entry.Member == member {
+			return entry.Score, nil
+		}
+	}
+	return -1, nil
+}
+
 func (m *ExpireMap) ZRank(key, member string) (int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
