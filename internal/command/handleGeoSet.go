@@ -28,10 +28,10 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 	}
 
 	if longitude < MinLongitude || longitude > MaxLongitude {
-		return resp.BuildError(fmt.Sprintf("ERR invalid longitude latitude pair %.6f, %.6f", longitude, latitude))
+		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
 	}
 	if latitude < MinLatitude || latitude > MaxLatitude {
-		return resp.BuildError(fmt.Sprintf("ERR invalid longitude latitude pair %.6f, %.6f", longitude, latitude))
+		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
 	}
 	member := args[4]
 	val, err := st.GeoAdd(key, longitude, latitude, member)
