@@ -7,10 +7,13 @@ import (
 	"fmt"
 )
 
-var MaxLongitude = 180.0
-var MinLongitude = -180.0
-var MaxLatitude = 85.05112878
-var MinLatitude = -85.05112878
+const (
+	MAXLONITUDE = 180.0
+	MINLONITUDE = -180.0
+	MAXLATITUDE = 85.05112878
+	MINLATITUDE = -85.05112878
+)
+
 
 
 func _interleaveits(x, y uint32) uint64 {
@@ -36,14 +39,14 @@ func _interleaveits(x, y uint32) uint64 {
 
 func _geoHashEncode(longitude, latitude float64) uint64 {
 
-	lat_offset := (latitude - MinLatitude) / (MaxLatitude - MinLatitude)
+	lat_offset := (latitude - MINLATITUDE) / (MAXLATITUDE - MINLATITUDE)
 
-	lon_offset := (longitude - MinLongitude) / (MaxLongitude - MinLongitude)
+	lon_offset := (longitude - MINLONITUDE) / (MAXLONITUDE - MINLONITUDE)
 
 	lat_offset *= (1 << 26)
 	lon_offset *= (1 << 26)
 
-	return _interleaveits(uint32(lon_offset), uint32(lat_offset))
+	return _interleaveits(uint32(lat_offset), uint32(lon_offset))
 }
 
 
@@ -63,10 +66,10 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 		return resp.BuildError("ERR value is not a valid float")
 	}
 
-	if longitude < MinLongitude || longitude > MaxLongitude {
+	if longitude < MINLONITUDE || longitude > MAXLONITUDE {
 		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
 	}
-	if latitude < MinLatitude || latitude > MaxLatitude {
+	if latitude < MINLATITUDE || latitude > MAXLATITUDE {
 		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
 	}
 	member := args[4]
