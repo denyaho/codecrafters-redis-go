@@ -35,8 +35,8 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 		y64 = (y64 | (y64 >> S[i])) & B[i]
 	}
 	
-	longitude := float64(x64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
-	latitude := float64(y64) / (1 << 26) * (MAXLATITUDE - MINLATITUDE) + MINLATITUDE
+	longitude := float64(y64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
+	latitude := float64(x64) / (1 << 26) * (MAXLATITUDE - MINLATITUDE) + MINLATITUDE
 	
 	return longitude, latitude
 }
