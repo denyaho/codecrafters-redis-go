@@ -16,11 +16,11 @@ const (
 
 func _decodeGeoHash(geoHash uint64) (float64, float64) {
 	var B = [5]uint64{
+		0x5555555555555555,
 		0x3333333333333333,
 		0x0F0F0F0F0F0F0F0F, 
 		0x00FF00FF00FF00FF,
 		0x0000FFFF0000FFFF,
-		0x00000000FFFFFFFF,
 	}
 
 	var S = [5]uint8{1, 2, 4, 8, 16,}
@@ -28,7 +28,7 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 	var x64 = geoHash
 	var y64 = geoHash >> 1
 
-	geoHash = geoHash & 0x5555555555555555
+	// geoHash = geoHash & 0x5555555555555555
 
 	for i := 0; i < 5; i++ {
 		x64 = (x64 | (x64 >> S[i])) & B[i]
