@@ -40,6 +40,14 @@ func BuildArray(arr []string) []byte {
 	return response
 }
 
+func BuildArrayOfArrays(arr [][]string) []byte {
+	response := []byte(fmt.Sprintf("*%d\r\n", len(arr)))
+	for _, subArr := range arr {
+		response = append(response, BuildArray(subArr)...)
+	}
+	return response
+}
+
 
 
 func BuildArrayForPUBSUB(arr []string, count int) []byte {

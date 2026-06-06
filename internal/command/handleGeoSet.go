@@ -109,21 +109,25 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
-	if len(args) != 3{
+	if len(args) < 3{
 		return resp.BuildError("ERR wrong number of arguments for 'GEOPOS' command")
 	}
 	key := args[1]
-	member := args[2]
 
-	val, err := st.ZGet(key, member)
-	if err != nil {
-		return resp.BuildError("ERR could not get geo data")
+	results := make([][]string, len(args)-2)
+	for i := 2; i < len(args); i++ {
+		member := args[i]
+		val, err := st.ZGet(key, member)
+		if err != nil {
+			return resp.BuildError("ERR could not get geo data")
+		}
+		if val == -1 {
+			return resp.BuildNullArray()
+		}
+		longitude, latitude := _decodeGeoHash(uint64(val))
+		longitudeStr := strconv.FormatFloat(longitude, 'f', 6, 64)
+		latitudeStr := strconv.FormatFloat(latitude, 'f', 6, 64)
+		results[i-2] = []string{longitudeStr, latitudeStr}
 	}
-	if val == -1 {
-		return resp.BuildNullArray()
-	}
-	longitude, latitude := _decodeGeoHash(uint64(val))
-	longitudeStr := strconv.FormatFloat(longitude, 'f', 6, 64)
-	latitudeStr := strconv.FormatFloat(latitude, 'f', 6, 64)
-	return resp.BuildArray([]string{longitudeStr, latitudeStr})
+	return resp.BuildArrayOfArrays(results)
 }
