@@ -8,6 +8,7 @@ type GeoEntry struct {
 	Member    string
 }
 
+
 func (m *ExpireMap) GeoAdd(key string, longitude, latitude float64, member string) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

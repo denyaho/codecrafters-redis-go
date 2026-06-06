@@ -14,6 +14,31 @@ const (
 	MINLATITUDE = -85.05112878
 )
 
+func _decodeGeoHash(geoHash uint64) (float64, float64) {
+	var B = [5]uint64{
+		0x5555555555555555,
+		0x3333333333333333,
+		0x0F0F0F0F0F0F0F0F, 
+		0x00FF00FF00FF00FF,
+		0x0000FFFF0000FFFF,
+	}
+
+	var S = [5]uint8{1, 2, 4, 8, 16,}
+
+	var x64 = geoHash
+	var y64 = geoHash >> 1
+
+	for i := 4; i >= 0; i-- {
+		x64 = (x64 | (x64 >> S[i])) & B[i]
+		y64 = (y64 | (y64 >> S[i])) & B[i]
+	}
+	
+	longitude := float64(x64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
+	latitude := float64(y64) / (1 << 26) * (MAXLATITUDE - MINLATITUDE) + MINLATITUDE
+	
+	return longitude, latitude
+}
+
 
 
 func _interleaveits(x, y uint32) uint64 {
@@ -81,4 +106,24 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 		return resp.BuildError("ERR could not add geo data")
 	}
 	return resp.BuildInteger(val)
+}
+
+func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
+	if len(args) != 3{
+		return resp.BuildError("ERR wrong number of arguments for 'GEOPOS' command")
+	}
+	key := args[1]
+	member := args[2]
+
+	val, err := st.ZGet(key, member)
+	if err != nil {
+		return resp.BuildError("ERR could not get geo data")
+	}
+	if val == -1 {
+		return resp.BuildNullArray()
+	}
+	longitude, latitude := _decodeGeoHash(uint64(val))
+	longitudeStr := strconv.FormatFloat(longitude, 'f', 6, 64)
+	latitudeStr := strconv.FormatFloat(latitude, 'f', 6, 64)
+	return resp.BuildArray([]string{longitudeStr, latitudeStr})
 }

@@ -9,6 +9,26 @@ type ZSetEntry struct {
 	Score  float64
 }
 
+func (m *ExpireMap) ZGet(key, member string) (float64, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	item, exist := m.data[key]
+	sortedSet, ok := item.value.([]ZSetEntry)
+	if !exist {
+		return -1, nil
+	}
+	if !ok {
+		return -1, ErrWrongType
+	}
+	for _, entry := range sortedSet {
+		if entry.Member == member {
+			return entry.Score, nil
+		}
+	}
+	return -1, nil
+}
+
 func (m *ExpireMap) ZRem(key, member string) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
