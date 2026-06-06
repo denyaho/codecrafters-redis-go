@@ -121,8 +121,10 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 		if err != nil {
 			return resp.BuildError("ERR could not get geo data")
 		}
+
 		if val == -1 {
-			return resp.BuildNullArray()
+			results[i-2] = []string{}
+			continue
 		}
 		longitude, latitude := _decodeGeoHash(uint64(val))
 		longitudeStr := strconv.FormatFloat(longitude, 'f', 6, 64)

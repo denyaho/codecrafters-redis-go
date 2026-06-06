@@ -43,7 +43,11 @@ func BuildArray(arr []string) []byte {
 func BuildArrayOfArrays(arr [][]string) []byte {
 	response := []byte(fmt.Sprintf("*%d\r\n", len(arr)))
 	for _, subArr := range arr {
-		response = append(response, BuildArray(subArr)...)
+		if len(subArr) == 0 {
+			response = append(response, BuildNullArray()...)
+		} else {
+			response = append(response, BuildArray(subArr)...)
+		}
 	}
 	return response
 }
