@@ -129,8 +129,8 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 			continue
 		}
 		longitude, latitude := _decodeGeoHash(uint64(val))
-		longitudeStr := strconv.FormatFloat(longitude, 'f', 6, 64)
-		latitudeStr := strconv.FormatFloat(latitude, 'f', 6, 64)
+		longitudeStr := strconv.FormatFloat(longitude, 'f', 12, 64)
+		latitudeStr := strconv.FormatFloat(latitude, 'f', 12, 64)
 		results[i-2] = []string{longitudeStr, latitudeStr}
 	}
 	return resp.BuildArrayOfArrays(results)
