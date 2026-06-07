@@ -141,7 +141,7 @@ func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
 	dlon := lon2 - lon1
 	dlat := lat2 - lat1
 	a := math.Pow(math.Sin(dlat/2.0), 2.0) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(dlon/2.0), 2.0)
-	c := 2 * math.Asin(math.Sqrt(a))
+	c := 2.0 * math.Asin(math.Sqrt(a))
 
 	return c * EARTH_RADIUS
 }
