@@ -135,12 +135,12 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildArrayOfArrays(results)
 }
 
-const EARTH_RADIUS = 6372800 // in kilometers
+const EARTH_RADIUS = 6372800.0 // in meters
 
 func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
 	dlon := lon2 - lon1
 	dlat := lat2 - lat1
-	a := math.Pow(math.Sin(dlat/2), 2.0) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(dlon/2), 2.0)
+	a := math.Pow(math.Sin(dlat/2.0), 2.0) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(dlon/2.0), 2.0)
 	c := 2 * math.Asin(math.Sqrt(a))
 
 	return c * EARTH_RADIUS
