@@ -134,6 +134,8 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleGEOADD(st, args)
 		case "GEOPOS":
 			response = handleGEOPOS(st, args)	
+		case "GEODIST":
+			response = handleGEODIST(st, args)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{

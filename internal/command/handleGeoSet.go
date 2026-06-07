@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"strconv"
-
+	"math"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
@@ -133,4 +133,54 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 		results[i-2] = []string{longitudeStr, latitudeStr}
 	}
 	return resp.BuildArrayOfArrays(results)
+}
+
+const RX = 6378.137 // in meters
+const RY = 6356.752
+
+func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
+	deltaX := lon2 - lon1
+	deltaY := lat2 - lat1
+	mu := (lat1 + lat2) / 2.0
+	E := math.Sqrt(1 - math.Pow(RY / RX, 2.0))
+	W := math.Sqrt(1 - math.Pow(E * math.Sin(mu), 2.0))
+	M := RX * (1 - math.Pow(E, 2.0)) / math.Pow(W, 3.0)
+	N := RX / W
+
+	return math.Sqrt(math.Pow(M * deltaY, 2.0) + math.Pow(N * deltaX * math.Cos(mu), 2.0))
+}
+
+func deg2rad(deg float64) float64 {
+	return deg * math.Pi / 180.0
+}
+
+func handleGEODIST(st *store.ExpireMap, args []string) []byte {
+	if 	len(args) != 4 {
+		return resp.BuildError("ERR wrong number of arguments for 'GEODIST' command")
+	}
+	key := args[1]
+	member1 := args[2]
+	member2 := args[3]
+
+	val1, err1 := st.ZGet(key, member1)
+	val2, err2 := st.ZGet(key, member2)
+
+	if err1 != nil || err2 != nil {
+		return resp.BuildError("ERR could not get geo data")
+	}
+	if val1 == -1 || val2 == -1 {
+		return resp.BuildNullBulkString()
+	}
+
+	longitude1, latitude1 := _decodeGeoHash(uint64(val1))
+	longitude2, latitude2 := _decodeGeoHash(uint64(val2))
+	longitude1 = deg2rad(longitude1)
+	latitude1 = deg2rad(latitude1)
+	longitude2 = deg2rad(longitude2)
+	latitude2 = deg2rad(latitude2)
+
+	distance := _calculateDistance(longitude1, latitude1, longitude2, latitude2)
+	distance *= 1000.0 // convert to meters
+	return resp.BuildBulkStrings(strconv.FormatFloat(distance, 'f', -1, 64))
+
 }
