@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
-	"strconv"
-	"fmt"
 )
 
 const (
@@ -18,13 +19,13 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 	var B = [6]uint64{
 		0x5555555555555555,
 		0x3333333333333333,
-		0x0F0F0F0F0F0F0F0F, 
+		0x0F0F0F0F0F0F0F0F,
 		0x00FF00FF00FF00FF,
 		0x0000FFFF0000FFFF,
 		0x00000000FFFFFFFF,
 	}
 
-	var S = [6]uint8{0, 1, 2, 4, 8, 16,}
+	var S = [6]uint8{0, 1, 2, 4, 8, 16}
 
 	var x64 = geoHash
 	var y64 = geoHash >> 1
@@ -36,25 +37,23 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 		x64 = (x64 | (x64 >> S[i])) & B[i]
 		y64 = (y64 | (y64 >> S[i])) & B[i]
 	}
-	
-	latitude := float64(x64) / (1 << 26) * (MAXLATITUDE - MINLATITUDE) + MINLATITUDE
-	longitude := float64(y64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
-	
+
+	latitude := float64(x64)/float64(1<<26)*(MAXLATITUDE-MINLATITUDE) + MINLATITUDE
+	longitude := float64(y64)/float64(1<<26)*(MAXLONITUDE-MINLONITUDE) + MINLONITUDE
+
 	return longitude, latitude
 }
-
-
 
 func _interleaveits(x, y uint32) uint64 {
 	var B = [5]uint64{
 		0x5555555555555555,
 		0x3333333333333333,
-		0x0F0F0F0F0F0F0F0F, 
+		0x0F0F0F0F0F0F0F0F,
 		0x00FF00FF00FF00FF,
 		0x0000FFFF0000FFFF,
 	}
 
-	var S = [5]uint8{1, 2, 4, 8, 16,}
+	var S = [5]uint8{1, 2, 4, 8, 16}
 
 	var x64 = uint64(x)
 	var y64 = uint64(y)
@@ -77,8 +76,6 @@ func _geoHashEncode(longitude, latitude float64) uint64 {
 
 	return _interleaveits(uint32(lat_offset), uint32(lon_offset))
 }
-
-
 
 func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 	if len(args) != 5 {
@@ -113,7 +110,7 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 }
 
 func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
-	if len(args) < 3{
+	if len(args) < 3 {
 		return resp.BuildError("ERR wrong number of arguments for 'GEOPOS' command")
 	}
 	key := args[1]
