@@ -29,14 +29,16 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 	var x64 = geoHash
 	var y64 = geoHash >> 1
 
+	x64 = x64 & B[0]
+	y64 = y64 & B[0]
 
-	for i := 0; i < 6; i++ {
+	for i := 1; i < 6; i++ {
 		x64 = (x64 | (x64 >> S[i])) & B[i]
 		y64 = (y64 | (y64 >> S[i])) & B[i]
 	}
 	
-	longitude := float64(y64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
 	latitude := float64(x64) / (1 << 26) * (MAXLATITUDE - MINLATITUDE) + MINLATITUDE
+	longitude := float64(y64) / (1 << 26) * (MAXLONITUDE - MINLONITUDE) + MINLONITUDE
 	
 	return longitude, latitude
 }
