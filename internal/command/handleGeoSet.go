@@ -135,7 +135,7 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildArrayOfArrays(results)
 }
 
-const EARTH_RADIUS = 6372800.0 // in meters
+const EARTH_RADIUS = 6372.8 // in meters
 
 func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
 	dlon := lon2 - lon1
@@ -175,7 +175,7 @@ func handleGEODIST(st *store.ExpireMap, args []string) []byte {
 	longitude2 = deg2rad(longitude2)
 	latitude2 = deg2rad(latitude2)
 
-	distance := _calculateDistance(longitude1, latitude1, longitude2, latitude2)
+	distance := _calculateDistance(longitude1, latitude1, longitude2, latitude2) * 1000.0 // convert to meters
 	return resp.BuildBulkStrings(strconv.FormatFloat(distance, 'f', -1, 64))
 
 }
