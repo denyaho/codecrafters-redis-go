@@ -135,19 +135,15 @@ func handleGEOPOS(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildArrayOfArrays(results)
 }
 
-const RX = 6378.137 // in meters
-const RY = 6356.752
+const EARTH_RADIUS = 6371000.0 // in meters
 
 func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
-	deltaX := lon2 - lon1
-	deltaY := lat2 - lat1
-	mu := (lat1 + lat2) / 2.0
-	E := math.Sqrt(1 - math.Pow(RY / RX, 2.0))
-	W := math.Sqrt(1 - math.Pow(E * math.Sin(mu), 2.0))
-	M := RX * (1 - math.Pow(E, 2.0)) / math.Pow(W, 3.0)
-	N := RX / W
+	dlon := lon2 - lon1
+	dlat := lat2 - lat1
+	a := math.Pow(math.Sin(dlat/2), 2.0) + math.Cos(lat1)*math.Cos(lat2)*math.Sin(dlon/2) *math.Pow(math.Sin(dlon/2), 2.0)
+	c := 2 * math.Asin(math.Sqrt(a))
 
-	return math.Sqrt(math.Pow(M * deltaY, 2.0) + math.Pow(N * deltaX * math.Cos(mu), 2.0))
+	return c * EARTH_RADIUS
 }
 
 func deg2rad(deg float64) float64 {
