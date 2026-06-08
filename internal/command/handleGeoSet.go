@@ -38,8 +38,8 @@ func _decodeGeoHash(geoHash uint64) (float64, float64) {
 		y64 = (y64 | (y64 >> S[i])) & B[i]
 	}
 	scale := float64(1 << 26)
-	latitude := (float64(x64))/scale*(MAXLATITUDE-MINLATITUDE) + MINLATITUDE
-	longitude := (float64(y64))/scale*(MAXLONITUDE-MINLONITUDE) + MINLONITUDE
+	latitude := (float64(x64) + 0.5)/scale*(MAXLATITUDE-MINLATITUDE) + MINLATITUDE
+	longitude := (float64(y64) + 0.5)/scale*(MAXLONITUDE-MINLONITUDE) + MINLONITUDE
 
 	return longitude, latitude
 }
@@ -140,7 +140,9 @@ const EARTH_RADIUS = 6372.7975608 // in kilometers
 func _calculateDistance(lon1, lat1, lon2, lat2 float64) float64 {
 	dlon := lon2 - lon1
 	dlat := lat2 - lat1
-	a := math.Pow(math.Sin(dlat/2.0), 2.0) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(dlon/2.0), 2.0)
+	u := math.Sin(dlat/2.0)
+	v := math.Sin(dlon/2.0)
+	a := u*u + math.Cos(lat1) * math.Cos(lat2) * v*v
 	c := 2.0 * math.Asin(math.Sqrt(a))
 
 	return c * EARTH_RADIUS
