@@ -226,7 +226,6 @@ func handleGEOSEARCH(st *store.ExpireMap, args []string) []byte {
 						case "m":
 							radiusInMeters = radius
 							entries, err := _search(st, key, longitude, latitude, radiusInMeters)
-							fmt.Printf("Search reulst: %v", entries)
 							if err != nil {
 								return resp.BuildError("ERR could not search geo data")
 							}
