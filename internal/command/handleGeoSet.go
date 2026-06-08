@@ -177,7 +177,7 @@ func handleGEODIST(st *store.ExpireMap, args []string) []byte {
 	longitude2 = deg2rad(longitude2)
 	latitude2 = deg2rad(latitude2)
 
-	distance := _calculateDistance(longitude1, latitude1, longitude2, latitude2) * 1000.0 // convert to meters
+	distance := _calculateDistance(longitude1, latitude1, longitude2, latitude2)
 	return resp.BuildBulkStrings(strconv.FormatFloat(distance, 'f', -1, 64))
 
 }
