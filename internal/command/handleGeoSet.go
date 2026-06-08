@@ -181,3 +181,57 @@ func handleGEODIST(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildBulkStrings(strconv.FormatFloat(distance, 'f', -1, 64))
 
 }
+
+func _search(st *store.ExpireMap, key string, longitude, latitude, radius float64) ([]string, error) {
+	entries, err := st.ZGetEntry(key)
+	if err != nil {
+		return nil, err
+	}
+	var results []string
+	for _, entry := range entries {
+		entryLongitude, entryLatitude := _decodeGeoHash(uint64(entry.Score))
+		distance := _calculateDistance(deg2rad(longitude), deg2rad(latitude), deg2rad(entryLongitude), deg2rad(entryLatitude))
+		if distance <= radius {
+			results = append(results, entry.Member)
+		}
+	}
+	return results, nil
+}
+
+func handleGEOSEARCH(st *store.ExpireMap, args []string) []byte {
+	
+	key := args[1]
+	search_mode := args[2]
+	switch search_mode {
+		case "FROMLONLAT":
+			var longitude, latitude float64
+			longitude, err := strconv.ParseFloat(args[3], 64)
+			if err != nil {
+				return resp.BuildError("ERR value is not a valid float")
+			}
+			latitude, err = strconv.ParseFloat(args[4], 64)
+			if err != nil {
+				return resp.BuildError("ERR value is not a valid float")
+			}
+			option := args[5]
+			switch option {
+				case "BYRADIUS":
+					radius, err := strconv.ParseFloat(args[6], 64)
+					if err != nil {
+						return resp.BuildError("ERR value is not a valid float")
+					}
+					unit := args[7]
+					var radiusInMeters float64
+					switch unit {
+						case "m":
+							radiusInMeters = radius
+							entries, err := _search(st, key, longitude, latitude, radiusInMeters)
+							if err != nil {
+								return resp.BuildError("ERR could not search geo data")
+							}
+							return resp.BuildArray(entries)
+						}
+			}
+	}
+	return resp.BuildError("ERR unsupported search mode or option")
+}
