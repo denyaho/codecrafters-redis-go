@@ -22,7 +22,7 @@ func handleACLWhoami(st *store.ExpireMap, args []string, c *pubsub.Client) []byt
 }
 
 func handleACLGetUser(st *store.ExpireMap, args []string, c *pubsub.Client) []byte {
-	return resp.BuildArray([]string{"flag", ""})
+	return resp.BuildArray([]string{"flags", ""})
 }
 
 
