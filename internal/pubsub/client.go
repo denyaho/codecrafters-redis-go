@@ -7,6 +7,21 @@ import (
 )
 //struct -> メモリを消費しない型
 
+type Selectors struct {
+	Commands []string
+	Keys []string
+	Channels []string
+}
+type UserInfo struct {
+	Username string
+	Flags []string
+	Passwords []string	
+	Commands []string
+	Keys []string
+	Channels []string
+	Selectors Selectors
+}
+
 type Client struct {
 	ID                 int64
 	Connection         net.Conn
@@ -14,6 +29,7 @@ type Client struct {
 	SubscribedPatterns map[string]struct{}
 	SubscriptionCount  int
 	IsSubscribed bool
+	Userinfo UserInfo
 	mu sync.RWMutex
 }
 
@@ -27,6 +43,14 @@ func NewClient(conn net.Conn) *Client {
 		SubscribedPatterns: make(map[string]struct{}),
 		SubscriptionCount:  0,
 		IsSubscribed: false,
+		Userinfo: UserInfo{
+			Username: "default",
+			Selectors: Selectors{
+				Commands: []string{},
+				Keys: []string{},
+				Channels: []string{},
+			},
+		},
 	}
 }
 

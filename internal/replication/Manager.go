@@ -101,7 +101,7 @@ func (rm *ReplicaManager) StartReplicationHeartbeat() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if !rm.GetPsynced() {
+		if rm.GetPsynced() {
 			rm.PropagateCommand([]string{"REPLCONF","GETACK", "*"})
 		}
 	}
