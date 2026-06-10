@@ -15,7 +15,7 @@ type Selectors struct {
 type UserInfo struct {
 	Username string
 	Flags []string
-	Passwords []string	
+	Passwords string
 	Commands []string
 	Keys []string
 	Channels []string
@@ -45,6 +45,7 @@ func NewClient(conn net.Conn) *Client {
 		IsSubscribed: false,
 		Userinfo: UserInfo{
 			Username: "default",
+			Passwords: "passwords",
 			Selectors: Selectors{
 				Commands: []string{},
 				Keys: []string{},
