@@ -28,6 +28,7 @@ type Client struct {
 	IsSubscribed bool
 	Username string
 	RequiredAuth bool
+	IsAuthenticated bool
 	mu sync.RWMutex
 }
 
@@ -54,6 +55,7 @@ func NewClient(conn net.Conn, manager *Manager) *Client {
 			}
 			return true
 		}(),
+		IsAuthenticated: false,
 	}
 }
 

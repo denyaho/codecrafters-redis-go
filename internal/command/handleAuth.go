@@ -11,7 +11,7 @@ import (
 
 func handleACL(st *store.ExpireMap, args []string, ps *pubsub.Manager, c *pubsub.Client) []byte {
 
-	if c.RequiredAuth {
+	if c.RequiredAuth && !c.IsAuthenticated {
 		return resp.BuildError("NOAUTH Authentication required.")
 	}
 
@@ -74,6 +74,7 @@ func handleAUTH(st *store.ExpireMap, args []string, ps *pubsub.Manager) []byte {
 	hashString := hex.EncodeToString(hash[:])
 	for _, storedHash := range ps.Users[username].Passwords {
 		if storedHash == hashString {
+			c.IsAuthenticated = true
 			return resp.BuildSimpleString("OK")
 		}
 	}
