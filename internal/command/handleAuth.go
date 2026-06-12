@@ -60,3 +60,18 @@ func handleACLSetUser(st *store.ExpireMap, args []string, ps *pubsub.Manager, c 
 	return resp.BuildSimpleString("OK")
 }
 
+func handleAUTH(st *store.ExpireMap, args []string, ps *pubsub.Manager) []byte {
+	username := args[1]
+	password := args[2]
+	if ps.GetUser(username) == nil {
+		return resp.BuildError("(error) WRONGPASS invalid username-password pair or user is disabled.")
+	}
+	hash := sha256.Sum256([]byte(password))
+	hashString := hex.EncodeToString(hash[:])
+	for _, storedHash := range ps.Users[username].Passwords {
+		if storedHash == hashString {
+			return resp.BuildSimpleString("OK")
+		}
+	}
+	return resp.BuildError("(error) WRONGPASS invalid username-password pair or user is disabled.")
+}
