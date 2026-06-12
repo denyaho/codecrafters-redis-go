@@ -141,7 +141,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "ACL":
 			response = handleACL(st, args, ps, c)
 		case "AUTH":
-			response = handleAUTH(st, args, ps)
+			response = handleAUTH(st, args, ps, c)
 		}
 		PropagateCommands := []string{"SET"}
 		for _, command := range PropagateCommands{

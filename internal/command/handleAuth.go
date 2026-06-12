@@ -64,7 +64,7 @@ func handleACLSetUser(st *store.ExpireMap, args []string, ps *pubsub.Manager, c 
 	return resp.BuildSimpleString("OK")
 }
 
-func handleAUTH(st *store.ExpireMap, args []string, ps *pubsub.Manager) []byte {
+func handleAUTH(st *store.ExpireMap, args []string, ps *pubsub.Manager, c *pubsub.Client) []byte {
 	username := args[1]
 	password := args[2]
 	if ps.GetUser(username) == nil {
