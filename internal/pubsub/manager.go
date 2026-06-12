@@ -21,8 +21,8 @@ func NewManager() *Manager {
 	}
 	m.Users["default"] = &UserInfo{
 		Username: "default",
-		Passwords: "passwords",
-		Flags: []string{"on", "allkeys", "allcommands"},
+		Passwords: []string{},
+		Flags: []string{"nopass"},
 		Selectors: Selectors{
 			Commands: []string{"+@all"},
 			Keys: []string{"~*"},
@@ -30,6 +30,16 @@ func NewManager() *Manager {
 		},
 	}
 	return m
+}
+
+func (m *Manager) GetUser(username string) *UserInfo {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if user, exists := m.Users[username]; exists {
+		return user
+	}
+	return nil
 }
 
 func (m *Manager) Subscribe(client *Client, channel string) {

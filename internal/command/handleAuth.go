@@ -26,11 +26,15 @@ func handleACLWhoami(st *store.ExpireMap, args []string, ps *pubsub.Manager, c *
 	return resp.BuildBulkStrings(ps.Users[c.Username].Username)
 }
 func handleACLGetUser(st *store.ExpireMap, args []string, ps *pubsub.Manager, c *pubsub.Client) []byte {
+	user := args[2]
+	if ps.GetUser(user) == nil {
+		return resp.BuildNullArray()
+	}
 	response := []byte("*4\r\n")
 	response = append(response, resp.BuildBulkStrings("flags")...)
-	response = append(response, resp.BuildArray([]string{"nopass"})...)
+	response = append(response, resp.BuildArray(ps.Users[user].Flags)...)
 	response = append(response, resp.BuildBulkStrings("passwords")...)
-	response = append(response, resp.BuildArray([]string{})...)
+	response = append(response, resp.BuildArray(ps.Users[user].Passwords)...)
 	return response
 }
 
@@ -42,7 +46,7 @@ func handleACLSetUser(st *store.ExpireMap, args []string, ps *pubsub.Manager, c 
 			if user, exists := ps.Users[username];
 			exists {
 				hash := sha256.Sum256([]byte(password))
-				user.Passwords = hex.EncodeToString(hash[:])
+				user.Passwords = append(user.Passwords, hex.EncodeToString(hash[:]))
 				flags := []string{}
 				for _, flag := range user.Flags {
 					if flag != "nopass" {

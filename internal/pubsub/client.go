@@ -15,7 +15,7 @@ type Selectors struct {
 type UserInfo struct {
 	Username string
 	Flags []string
-	Passwords string
+	Passwords []string
 	Selectors Selectors
 }
 
