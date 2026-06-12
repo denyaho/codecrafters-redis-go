@@ -45,7 +45,7 @@ func (s *Server) StartServer() {
 
 	for {
 		conn, err := l.Accept()
-		c := pubsub.NewClient(conn)
+		c := pubsub.NewClient(conn, s.pubsubManager)
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			continue

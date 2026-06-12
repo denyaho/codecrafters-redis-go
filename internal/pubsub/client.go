@@ -27,12 +27,13 @@ type Client struct {
 	SubscriptionCount  int
 	IsSubscribed bool
 	Username string
+	RequiredAuth bool
 	mu sync.RWMutex
 }
 
 var id int64
 
-func NewClient(conn net.Conn) *Client {
+func NewClient(conn net.Conn, manager *Manager) *Client {
 	return &Client{
 		ID:                 atomic.AddInt64(&id, 1),
 		Connection:         conn,
@@ -41,6 +42,18 @@ func NewClient(conn net.Conn) *Client {
 		SubscriptionCount:  0,
 		IsSubscribed: false,
 		Username: "default",
+		RequiredAuth: func() bool {
+			user := manager.GetUser("default")
+			if user == nil {
+				return false
+			}
+			for _, flag := range user.Flags {
+				if flag == "nopass" {
+					return false
+				}
+			}
+			return true
+		}(),
 	}
 }
 

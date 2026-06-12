@@ -10,15 +10,8 @@ import (
 )
 
 func handleACL(st *store.ExpireMap, args []string, ps *pubsub.Manager, c *pubsub.Client) []byte {
-	username := c.Username
-	isNopass := false
-	for _, flag := range ps.Users[username].Flags {
-		if flag == "nopass" {
-			isNopass = true
-			break
-		}
-	}
-	if !isNopass {
+
+	if c.RequiredAuth {
 		return resp.BuildError("NOAUTH Authentication required.")
 	}
 
