@@ -16,9 +16,6 @@ type UserInfo struct {
 	Username string
 	Flags []string
 	Passwords string
-	Commands []string
-	Keys []string
-	Channels []string
 	Selectors Selectors
 }
 
@@ -29,7 +26,7 @@ type Client struct {
 	SubscribedPatterns map[string]struct{}
 	SubscriptionCount  int
 	IsSubscribed bool
-	Userinfo UserInfo
+	Username string
 	mu sync.RWMutex
 }
 
@@ -43,15 +40,7 @@ func NewClient(conn net.Conn) *Client {
 		SubscribedPatterns: make(map[string]struct{}),
 		SubscriptionCount:  0,
 		IsSubscribed: false,
-		Userinfo: UserInfo{
-			Username: "default",
-			Passwords: "passwords",
-			Selectors: Selectors{
-				Commands: []string{},
-				Keys: []string{},
-				Channels: []string{},
-			},
-		},
+		Username: "default",
 	}
 }
 

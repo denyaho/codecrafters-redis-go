@@ -10,13 +10,26 @@ type Manager struct {
 	mu sync.Mutex
 	channels map[string][]*Client
 	patterns map[string][]*Client
+	Users map[string]*UserInfo
 }
 
 func NewManager() *Manager {
-	return &Manager {
+	m := &Manager {
 		channels: make(map[string][]*Client),
 		patterns: make(map[string][]*Client),
+		Users: make(map[string]*UserInfo),
 	}
+	m.Users["default"] = &UserInfo{
+		Username: "default",
+		Passwords: "passwords",
+		Flags: []string{"on", "allkeys", "allcommands"},
+		Selectors: Selectors{
+			Commands: []string{"+@all"},
+			Keys: []string{"~*"},
+			Channels: []string{"&*"},
+		},
+	}
+	return m
 }
 
 func (m *Manager) Subscribe(client *Client, channel string) {
