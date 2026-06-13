@@ -45,6 +45,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 	}
 	fmt.Printf("content of watched keys before EXEC: %v\n", c.Watchedkeys)
 	if len(c.Watchedkeys) > 0 && !_checkWatchedKeys(st, c) {
+		c.Watchedkeys = make(map[string]int64)
 		return []byte("*-1\r\n")
 	}
 	c.Watchedkeys = make(map[string]int64)
