@@ -27,9 +27,9 @@ type Client struct {
 	SubscriptionCount  int
 	IsSubscribed bool
 	Username string
-	RequiredAuth bool
 	IsAuthenticated bool
 	mu sync.RWMutex
+	Watchedkeys map[string]int64
 }
 
 var id int64
@@ -43,19 +43,8 @@ func NewClient(conn net.Conn, manager *Manager) *Client {
 		SubscriptionCount:  0,
 		IsSubscribed: false,
 		Username: "default",
-		RequiredAuth: func() bool {
-			user := manager.GetUser("default")
-			if user == nil {
-				return false
-			}
-			for _, flag := range user.Flags {
-				if flag == "nopass" {
-					return false
-				}
-			}
-			return true
-		}(),
 		IsAuthenticated: false,
+		Watchedkeys: make(map[string]int64),
 	}
 }
 

@@ -13,6 +13,10 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/pubsub"
 )
 
+var propagateCommands = map[string]struct{}{
+	"SET": {},
+	"DEL": {},
+}
 
 func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager) {
 	defer c.Connection.Close()
@@ -30,6 +34,11 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 	queue := [][]string{} 
 	for {
 		args, err :=resp.Parse(reader)
+		if err != nil {
+			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
+			c.Connection.Write(response)
+			return
+		}
 		if c.IsSubscribed {
 			response = handleSubscribedMode(c, args, ps)
 			c.Connection.Write(response)
@@ -48,11 +57,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			c.Connection.Write(response)
 			continue
 		}
-		if err != nil {
-			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
-			c.Connection.Write(response)
-			return
-		}
+		
 		fmt.Printf("Received command: %v\n", args)
 		switch command {
 		case "PING":
@@ -93,7 +98,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			if !isMulti {
 				response = []byte("-ERR EXEC without MULTI\r\n")
 			}else {
-				response = handleEXEC(st, queue)
+				response = handleEXEC(st, queue, c)
 				isMulti = false
 				queue = [][]string{}
 			}
@@ -106,8 +111,11 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 				response = []byte("+OK\r\n")
 			}
 		case "WATCH":
+			watchedKeys := args[1:]
+			for _, key := range watchedKeys {
+				c.Watchedkeys[key] = st.GetVersion(key)
+			}
 			response = handleWATCH(st, args)
-			
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":
@@ -153,13 +161,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "AUTH":
 			response = handleAUTH(st, args, ps, c)
 		}
-		PropagateCommands := []string{"SET"}
-		for _, command := range PropagateCommands{
-			if strings.ToUpper(args[0]) == command {
-				replicaManager.PropagateCommand(args)
-			}
-		}
-		fmt.Printf("Sending response: %s\n", string(response))
 		c.Connection.Write(response)
+		if _, ok := propagateCommands[command]; ok {
+			replicaManager.PropagateCommand(args)
+		}
 	}
 }

@@ -25,10 +25,15 @@ type ExpireMap struct {
 	data map[string]Item
 	mu sync.RWMutex
 	signals map[string]chan struct{}
+	versions map[string]int64
 }
 
 
-
+func (m *ExpireMap) GetVersion(key string) int64 {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.versions[key]
+}
 
 func (m *ExpireMap) Keys(key string) []string {
 	m.mu.RLock()
@@ -55,7 +60,7 @@ func (m *ExpireMap) Set(key string, value any, expireAt time.Duration) {
 	}else {
 		exp = time.Now().Add(expireAt).UnixNano()
 	}
-
+	m.versions[key]++
 	m.data[key] = Item{
 		value: value,
 		expireAt: exp,
@@ -333,5 +338,9 @@ type Store interface {
 }
 
 func NewExpireMap() *ExpireMap {
-	return &ExpireMap{data: make(map[string]Item), signals: make(map[string]chan struct{})}
+	return &ExpireMap{
+		data: make(map[string]Item), 
+		signals: make(map[string]chan struct{}),
+		versions: make(map[string]int64),
+	}
 }

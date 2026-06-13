@@ -5,6 +5,7 @@ import (
 	"strings"	
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
+	"github.com/codecrafters-io/redis-starter-go/internal/pubsub"
 	"fmt"
 )
 
@@ -27,14 +28,25 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildInteger(intValue)
 }
 
-func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
+func _checkWatchedKeys(st *store.ExpireMap, c *pubsub.Client) bool {
+	for key, version := range c.Watchedkeys {
+		if st.GetVersion(key) != version {
+			return false
+		}
+	}
+	return true
+}
+
+func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte {
 	var response []byte
 	if len(queue) == 0 {
 		return []byte("*0\r\n")
 	}
 	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
 	for _, args := range queue {
-		switch strings.ToUpper(args[0]) {
+		command := strings.ToUpper(args[0])
+
+		switch command {
 		case "PING":
 			response = handlePing()
 		case "ECHO":
@@ -67,6 +79,9 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 			response = handleINCR(st, args)
 		}
 		responses = append(responses, response...)
+	}
+	if !_checkWatchedKeys(st, c) {
+		return []byte("-1\r\n")
 	}
 	return responses
 }
