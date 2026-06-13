@@ -65,6 +65,8 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 			response = handleXRead(st, args)
 		case "INCR":
 			response = handleINCR(st, args)
+		case "WATCH":
+			return resp.BuildError("ERR WATCH inside MULTI is not allowed")
 		}
 		responses = append(responses, response...)
 	}
