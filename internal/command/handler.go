@@ -98,6 +98,8 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 				queue = [][]string{}
 				response = []byte("+OK\r\n")
 			}
+		case "WATCH":
+			response = handleWATCH(st, args)
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":

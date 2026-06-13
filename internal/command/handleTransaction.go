@@ -70,3 +70,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string) []byte {
 	}
 	return responses
 }
+
+func handleWATCH(st *store.ExpireMap, args []string) []byte {
+	return []byte("+OK\r\n")
+}
