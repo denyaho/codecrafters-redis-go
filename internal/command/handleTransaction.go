@@ -85,7 +85,6 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 		}
 		responses = append(responses, response...)
 	}
-
 	return responses
 }
 
