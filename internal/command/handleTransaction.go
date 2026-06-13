@@ -47,6 +47,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 	if !_checkWatchedKeys(st, c) {
 		return []byte("*-1\r\n")
 	}
+	c.Watchedkeys = make(map[string]int64)
 	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
 	for _, args := range queue {
 		command := strings.ToUpper(args[0])
