@@ -30,7 +30,8 @@ func handleINCR(st *store.ExpireMap, args []string) []byte {
 
 func _checkWatchedKeys(st *store.ExpireMap, c *pubsub.Client) bool {
 	for key, version := range c.Watchedkeys {
-		fmt.Printf("Checking key: %s, version: %d\n", key, version)
+		fmt.Printf("Checking key: %s, version: %d, current version: %d\n", key, version, st.GetVersion(key))
+
 		if st.GetVersion(key) != version {
 			return false
 		}
