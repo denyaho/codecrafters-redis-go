@@ -83,7 +83,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 		responses = append(responses, response...)
 	}
 	if !_checkWatchedKeys(st, c) {
-		return []byte("-1\r\n")
+		return []byte("*-1\r\n")
 	}
 	return responses
 }
