@@ -99,7 +99,11 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 				response = []byte("+OK\r\n")
 			}
 		case "WATCH":
-			response = handleWATCH(st, args)
+			if !isMulti {
+				response = handleWATCH(st, args)
+			} else {
+				response = []byte("-ERR WATCH inside MULTI is not allowed\r\n")
+			}
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":
