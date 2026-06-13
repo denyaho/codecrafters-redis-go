@@ -108,6 +108,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			} else {
 				isMulti = false
 				queue = [][]string{}
+				c.Watchedkeys = make(map[string]int64)
 				response = []byte("+OK\r\n")
 			}
 		case "WATCH":
