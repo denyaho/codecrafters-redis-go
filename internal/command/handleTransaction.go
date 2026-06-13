@@ -44,10 +44,13 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 	if len(queue) == 0 {
 		return []byte("*0\r\n")
 	}
+	if !_checkWatchedKeys(st, c) {
+		return []byte("*-1\r\n")
+	}
 	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
 	for _, args := range queue {
 		command := strings.ToUpper(args[0])
-
+		
 		switch command {
 		case "PING":
 			response = handlePing()
@@ -82,9 +85,7 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 		}
 		responses = append(responses, response...)
 	}
-	if !_checkWatchedKeys(st, c) {
-		return []byte("*-1\r\n")
-	}
+
 	return responses
 }
 
