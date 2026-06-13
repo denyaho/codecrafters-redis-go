@@ -44,11 +44,12 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 		return []byte("*0\r\n")
 	}
 	fmt.Printf("content of watched keys before EXEC: %v\n", c.Watchedkeys)
-	if len(c.Watchedkeys) > 0 && !_checkWatchedKeys(st, c) {
+	defer func() {
 		c.Watchedkeys = make(map[string]int64)
+	}()
+	if len(c.Watchedkeys) > 0 && !_checkWatchedKeys(st, c) {
 		return []byte("*-1\r\n")
 	}
-	c.Watchedkeys = make(map[string]int64)
 	responses := []byte(fmt.Sprintf("*%d\r\n", len(queue)))
 	for _, args := range queue {
 		command := strings.ToUpper(args[0])
@@ -90,6 +91,9 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 	return responses
 }
 
-func handleWATCH(st *store.ExpireMap, args []string) []byte {
+func handleWATCH(st *store.ExpireMap, args []string, c *pubsub.Client) []byte {
+	for _, key := range args[1:] {
+		c.Watchedkeys[key] = st.GetVersion(key)
+	}
 	return []byte("+OK\r\n")
 }
