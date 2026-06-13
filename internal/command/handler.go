@@ -35,7 +35,14 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			c.Connection.Write(response)
 			continue
 		}
-		if isMulti && strings.ToUpper(args[0]) != "EXEC" && strings.ToUpper(args[0]) != "DISCARD" {
+		command := strings.ToUpper(args[0])
+
+		if isMulti && command == "WATCH" {
+			response = []byte("-ERR WATCH inside MULTI is not allowed\r\n")
+			c.Connection.Write(response)
+			continue
+		}
+		if isMulti && command != "EXEC" && command != "DISCARD" {
 			queue = append(queue, args)
 			response = []byte("+QUEUED\r\n")
 			c.Connection.Write(response)
@@ -47,7 +54,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			return
 		}
 		fmt.Printf("Received command: %v\n", args)
-		switch strings.ToUpper(args[0]) {
+		switch command {
 		case "PING":
 			response = handlePing()
 		case "ECHO":
@@ -99,11 +106,8 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 				response = []byte("+OK\r\n")
 			}
 		case "WATCH":
-			if !isMulti {
-				response = handleWATCH(st, args)
-			} else {
-				response = []byte("-ERR WATCH inside MULTI is not allowed\r\n")
-			}
+			response = handleWATCH(st, args)
+			
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":
