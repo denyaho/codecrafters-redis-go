@@ -116,6 +116,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 				c.Watchedkeys[key] = st.GetVersion(key)
 			}
 			response = handleWATCH(st, args)
+		case "UNWATCH":
+			c.Watchedkeys = make(map[string]int64)
+			response = []byte("+OK\r\n")
 		case "INFO":
 			response = handleInfo(st, args, role, replID)
 		case "REPLCONF":
