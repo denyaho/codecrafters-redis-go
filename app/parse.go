@@ -41,27 +41,29 @@ func parseArgs() Config {
 	args := os.Args[1:]
 
 	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "--port":
-			config.Port = args[i+1]
-		case "--replicaof":
-			config.Role = "slave"
-			parts := strings.Split(args[i+1], " ")
-			config.MasterAddr = parts[0]
-			config.MasterPort = parts[1]
-		case "--dir":
-			config.CurrentDir = args[i+1]
-		case "--dbfilename":
-			config.DBFilename = args[i+1]
-		case "--appendonly":
-			config.AppendOnly = args[i+1]
-		case "--appenddirname":
-			config.AppendDirname = args[i+1]
-		case "--appendfilename":
-			config.AppendFilename = args[i+1]
-		case "--appendfsync":
-			config.AppendFsync = args[i+1]
-		}
+		if i + 1 < len(args) {
+			switch args[i] {
+				case "--port":
+					config.Port = args[i+1]
+				case "--replicaof":
+					config.Role = "slave"
+					parts := strings.Split(args[i+1], " ")
+					config.MasterAddr = parts[0]
+					config.MasterPort = parts[1]
+				case "--dir":
+					config.CurrentDir = args[i+1]
+				case "--dbfilename":
+					config.DBFilename = args[i+1]
+				case "--appendonly":
+					config.AppendOnly = args[i+1]
+				case "--appenddirname":
+					config.AppendDirname = args[i+1]
+				case "--appendfilename":
+					config.AppendFilename = args[i+1]
+				case "--appendfsync":
+					config.AppendFsync = args[i+1]
+				}
+			}
 	}
 	return config
 }
