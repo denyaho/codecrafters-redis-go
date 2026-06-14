@@ -36,10 +36,11 @@ func (a *AOF) CreateAOFDir() error {
 }
 
 func (a *AOF) GetAOFFilePath() string {
+	filename := a.AppendFilename + ".1.incr.aof"
 	if a.AppendDirname == "" {
-		return a.Dir + "/" + a.AppendFilename
+		return a.Dir + "/" + filename
 	}
-	return a.Dir + "/" + a.AppendDirname + "/" + a.AppendFilename
+	return a.Dir + "/" + a.AppendDirname + "/" + filename
 }
 
 func (a *AOF) Open() error {
