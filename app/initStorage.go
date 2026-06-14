@@ -13,7 +13,7 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 
 	st := store.NewExpireMap()
 
-	if err := rdb.ReadFile(nil); err != nil {
+	if err := rdb.ReadFile(st); err != nil {
 		if os.IsNotExist(err) {
 			fmt.Println("RDB file not found, starting with empty database")
 		} else {
