@@ -12,7 +12,7 @@ func NewAOF(dir string) *AOF {
 	return &AOF{
 		Dir: dir,
 		AppendOnly: "no",
-		AppendDirname: "appendonly",
+		AppendDirname: "appendonlydir",
 		AppendFilename: "appendonly.aof",
 		AppendFsync: "everysec",
 	}
