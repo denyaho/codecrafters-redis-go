@@ -49,6 +49,17 @@ func main() {
 		}
 		if arg == "--dbfilename" && i+1 <len(os.Args) {
 			dbfilename = os.Args[i+1]
+		if arg == "--appendonly" && i+1 <len(os.Args) {
+			aofConfig.AppendOnly = os.Args[i+1]
+		}
+		if arg == "--appenddirname" && i+1 <len(os.Args) {
+			aofConfig.AppendDirname = os.Args[i+1]
+		}
+		if arg == "--appendfilename" && i+1 <len(os.Args) {
+			aofConfig.AppendFilename = os.Args[i+1]
+		}
+		if arg == "--appendfsync" && i+1 <len(os.Args) {
+			aofConfig.AppendFsync = os.Args[i+1]
 		}
 	}
 	rdb := rdb.NewRDB(rdbdir, dbfilename)
