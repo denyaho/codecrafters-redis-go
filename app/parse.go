@@ -59,7 +59,8 @@ func parseArgs() Config {
 				case "--appenddirname":
 					config.AppendDirname = args[i+1]
 				case "--appendfilename":
-					config.AppendFilename = args[i+1]
+					filename := args[i+1] + ".1.incr.aof"
+					config.AppendFilename = filename
 				case "--appendfsync":
 					config.AppendFsync = args[i+1]
 				}
