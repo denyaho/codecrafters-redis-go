@@ -9,6 +9,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"github.com/codecrafters-io/redis-starter-go/internal/pubsub"
+	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 )
 
 type Server struct {
@@ -17,9 +18,10 @@ type Server struct {
 	replicaManager *replication.ReplicaManager
 	rdbConfig *rdb.RDB
 	pubsubManager *pubsub.Manager
+	aofConfig *aof.AOF
 }
 
-func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.ExpireMap) *Server {
+func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.ExpireMap, aofConfig *aof.AOF) *Server {
 	full_address := address + ":" + port
 	return &Server{
 		addr: full_address,
@@ -27,6 +29,7 @@ func New(port, address, role, masterAddr string, rdbconfig *rdb.RDB, st *store.E
 		replicaManager: replication.NewReplicaManager(role, masterAddr),
 		rdbConfig: rdbconfig,
 		pubsubManager: pubsub.NewManager(),
+		aofConfig: aofConfig,
 	}
 }
 
@@ -51,9 +54,9 @@ func (s *Server) StartServer() {
 			continue
 		}
 		go func(c *pubsub.Client) {
-			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig, s.pubsubManager)
+			handler.HandleConnection(c, s.st, s.replicaManager, s.rdbConfig, s.pubsubManager, s.aofConfig)
 		}(c)
-	}
+	}	
 }
 
 func (s *Server) connectToMaster() {

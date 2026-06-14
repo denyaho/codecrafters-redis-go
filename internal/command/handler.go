@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/replication"
@@ -18,7 +19,7 @@ var propagateCommands = map[string]struct{}{
 	"DEL": {},
 }
 
-func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager) {
+func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aofConfig *aof.AOF) {
 	defer c.Connection.Close()
 
 	ticker := time.NewTicker(time.Second)
@@ -129,7 +130,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
 		case "CONFIG":
-			response = handleCONFIG(args, rdbConfig)
+			response = handleCONFIG(args, rdbConfig, aofConfig)
 		case "KEYS":
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":

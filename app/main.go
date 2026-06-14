@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"github.com/codecrafters-io/redis-starter-go/internal/server"
-	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"strings"
+
+	"github.com/codecrafters-io/redis-starter-go/internal/aof"
+	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
+	"github.com/codecrafters-io/redis-starter-go/internal/server"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 )
 
@@ -21,9 +23,12 @@ func main() {
 	masterPort := ""
 	masterAddr := ""
 	role := "master"
-	rdbdir := ""
+	currentdir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	rdbdir := currentdir
 	dbfilename := ""
-
 
 	for i, arg := range os.Args {
 		if arg == "--port" && i+1 < len(os.Args) {
@@ -47,6 +52,7 @@ func main() {
 		}
 	}
 	rdb := rdb.NewRDB(rdbdir, dbfilename)
+	aof := aof.NewAOF(rdbdir)
 	st := store.NewExpireMap()
 	if err := rdb.ReadFile(st); err != nil {
 		if os.IsNotExist(err) {
@@ -56,7 +62,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st)
+	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st, aof)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
 	//

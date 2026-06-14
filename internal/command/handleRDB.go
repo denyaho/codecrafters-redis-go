@@ -4,10 +4,11 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/rdb"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
+	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 )
 
 
-func handleCONFIG(args []string, rdbConfig *rdb.RDB) []byte {
+func handleCONFIG(args []string, rdbConfig *rdb.RDB, aofConfig *aof.AOF) []byte {
 	if args[1] == "GET" {
 		switch args[2] {
 		case "dir":
