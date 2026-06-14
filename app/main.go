@@ -29,6 +29,8 @@ func main() {
 	}
 	rdbdir := currentdir
 	dbfilename := ""
+	aofConfig := aof.NewAOF(rdbdir)
+
 
 	for i, arg := range os.Args {
 		if arg == "--port" && i+1 < len(os.Args) {
@@ -49,6 +51,7 @@ func main() {
 		}
 		if arg == "--dbfilename" && i+1 <len(os.Args) {
 			dbfilename = os.Args[i+1]
+		}
 		if arg == "--appendonly" && i+1 <len(os.Args) {
 			aofConfig.AppendOnly = os.Args[i+1]
 		}
@@ -61,9 +64,9 @@ func main() {
 		if arg == "--appendfsync" && i+1 <len(os.Args) {
 			aofConfig.AppendFsync = os.Args[i+1]
 		}
+
 	}
 	rdb := rdb.NewRDB(rdbdir, dbfilename)
-	aof := aof.NewAOF(rdbdir)
 	st := store.NewExpireMap()
 	if err := rdb.ReadFile(st); err != nil {
 		if os.IsNotExist(err) {
@@ -73,7 +76,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st, aof)
+	server := server.New(port, "0.0.0.0", role, masterAddr + ":" + masterPort, rdb, st, aofConfig)
 	server.StartServer()
 	// Uncomment the code below to pass the first stage
 	//
