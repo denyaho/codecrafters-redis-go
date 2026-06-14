@@ -22,7 +22,7 @@ func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename 
 	}
 }
 
-func (a *AOF) CreateDir() error {
+func (a *AOF) CreateAOFFile() error {
 	if a.AppendOnly == "yes" {
 		return os.MkdirAll(a.Dir + "/" + a.AppendDirname + "/" + a.AppendFilename, 0755)	
 	}
