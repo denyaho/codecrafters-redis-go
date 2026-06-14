@@ -2,18 +2,18 @@ package aof
 
 type AOF struct {
 	Dir            string
-	Appendonly     bool
-	Appenddirname  string
-	Appendfilename string
-	Appendfsync    string
+	AppendOnly     string
+	AppendDirname  string
+	AppendFilename string
+	AppendFsync    string
 }
 
 func NewAOF(dir string) *AOF {
 	return &AOF{
 		Dir: dir,
-		Appendonly: false,
-		Appenddirname: "appendonly",
-		Appendfilename: "appendonly.aof",
-		Appendfsync: "everysec",
+		AppendOnly: "no",
+		AppendDirname: "appendonly",
+		AppendFilename: "appendonly.aof",
+		AppendFsync: "everysec",
 	}
 }

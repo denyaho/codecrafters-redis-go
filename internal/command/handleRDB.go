@@ -15,6 +15,14 @@ func handleCONFIG(args []string, rdbConfig *rdb.RDB, aofConfig *aof.AOF) []byte 
 			return resp.BuildArray([]string{"dir", rdbConfig.Dir})
 		case "dbfilename":
 			return resp.BuildArray([]string{"dbfilename", rdbConfig.DBfilename})
+		case "appendonly":
+			return resp.BuildArray([]string{"appendonly", aofConfig.AppendOnly})
+		case "appenddirname":
+			return resp.BuildArray([]string{"appenddirname", aofConfig.AppendDirname})
+		case "appendfilename":
+			return resp.BuildArray([]string{"appendfilename", aofConfig.AppendFilename})
+		case "appendfsync":
+			return resp.BuildArray([]string{"appendfsync", aofConfig.AppendFsync})
 		}
 	}
 	return resp.BuildError("ERR Unsupported CONFIG subcommand")
