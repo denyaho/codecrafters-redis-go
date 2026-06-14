@@ -32,10 +32,10 @@ func parseArgs() Config {
 		Role:       "master",
 		CurrentDir: dir,
 		DBFilename: "",
-		AppendFilename: "",
-		AppendFsync: "",
+		AppendFilename: "appendonly.aof",
+		AppendFsync: "everysec",
 		AppendOnly: "no",
-		AppendDirname: "",
+		AppendDirname: "appendonlydir",
 	}
 
 	args := os.Args[1:]
