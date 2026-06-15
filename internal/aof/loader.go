@@ -47,8 +47,7 @@ func (a *AOF) CreateAOFDir() error {
 	return nil
 }
 
-func (a *AOF) GetAOFFilePath() string {
-	filename := a.AppendFilename + ".1.incr.aof"
+func (a *AOF) GetAOFFilePath(filename string) string {
 	if a.AppendDirname == "" {
 		return a.Dir + "/" + filename
 	}
@@ -59,7 +58,7 @@ func (a *AOF) Open() error {
 	if a.AppendOnly != "yes" {
 		return nil
 	}
-	f, err := os.OpenFile(a.GetAOFFilePath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(a.GetAOFFilePath(a.AppendFilename+".1.incr.aof"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -75,7 +74,7 @@ func (a *AOF) WriteManifest() error {
 	if a.AppendOnly != "yes" {
 		return nil
 	}
-	f, err := os.OpenFile(a.Manifest.Filename, os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(a.GetAOFFilePath(a.Manifest.Filename), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
