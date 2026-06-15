@@ -5,6 +5,12 @@ import (
 	"sync"
 )
 
+type manifest struct {
+	Filename string
+	Sequence int64
+	Type string
+}
+
 type AOF struct {
 	Dir            string
 	AppendOnly     string
@@ -13,6 +19,7 @@ type AOF struct {
 	AppendFsync    string
 	file *os.File
 	mu sync.Mutex
+	Manifest manifest
 }
 
 func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename string, appendFsync string) *AOF {
@@ -22,6 +29,11 @@ func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename 
 		AppendDirname: appendDirname,
 		AppendFilename: appendFilename,
 		AppendFsync: appendFsync,
+		Manifest: manifest{
+			Filename: appendFilename + ".manifest",
+			Sequence: 1,
+			Type: "i",
+		},
 	}
 }
 
@@ -53,4 +65,36 @@ func (a *AOF) Open() error {
 	}
 	a.file = f
 	return nil
+}
+
+func _manifestContent(a *AOF) string {
+	return "file" + " " + a.AppendFilename + ".1.incr.aof" + " " + "seq" + " " +string(a.Manifest.Sequence) + " " + "type" + " " + a.Manifest.Type
+}
+
+func (a *AOF) WriteManifest() error {
+	if a.AppendOnly != "yes" {
+		return nil
+	}
+	f, err := os.OpenFile(a.Manifest.Filename, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	
+	content := _manifestContent(a)
+	a.Manifest.Sequence++
+	_, err = f.WriteString(content)
+	return err
+}
+
+func (a *AOF) CreateManifestFile() error {
+	if a.AppendOnly != "yes" {
+		return nil
+	}
+	manifestPath := a.Dir + "/" + a.AppendFilename + ".manifest"
+	f, err := os.OpenFile(manifestPath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
 }
