@@ -1,6 +1,7 @@
 package aof
 
 import (
+	"fmt"
 	"os"
 	"sync"
 )
@@ -67,7 +68,7 @@ func (a *AOF) Open() error {
 }
 
 func _manifestContent(a *AOF) string {
-	return "file" + " " + a.AppendFilename + ".1.incr.aof" + " " + "seq" + " " +string(a.Manifest.Sequence) + " " + "type" + " " + a.Manifest.Type
+	return fmt.Sprintf("file %s.1.incr.aof seq %d type %s", a.AppendFilename, a.Manifest.Sequence, a.Manifest.Type)
 }
 
 func (a *AOF) WriteManifest() error {
@@ -81,7 +82,6 @@ func (a *AOF) WriteManifest() error {
 	defer f.Close()
 	
 	content := _manifestContent(a)
-	a.Manifest.Sequence++
 	_, err = f.WriteString(content)
 	return err
 }

@@ -35,6 +35,7 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 		fmt.Printf("Failed to write AOF manifest: %v\n", err)
 		os.Exit(1)
 	}
+	aof.Manifest.Sequence++
 
 	return st, rdb, aof
 }
