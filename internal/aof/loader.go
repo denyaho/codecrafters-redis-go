@@ -87,14 +87,3 @@ func (a *AOF) WriteManifest() error {
 	return err
 }
 
-func (a *AOF) CreateManifestFile() error {
-	if a.AppendOnly != "yes" {
-		return nil
-	}
-	manifestPath := a.Dir + "/" + a.AppendFilename + ".manifest"
-	f, err := os.OpenFile(manifestPath, os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-
-}
