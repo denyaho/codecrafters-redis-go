@@ -37,6 +37,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 	for {
 		args, err :=resp.Parse(reader)
 		if err != nil {
+			fmt.Printf("Error parsing command: %v\n", err)
 			if err == io.EOF {
 				return
 			}
