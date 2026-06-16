@@ -19,7 +19,11 @@ var propagateCommands = map[string]struct{}{
 	"DEL": {},
 }
 
-func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aofConfig *aof.AOF) {
+var appendCommandsAOF = map[string]struct{}{
+	"SET": {},
+}
+
+func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aof *aof.AOF) {
 	defer c.Connection.Close()
 
 	ticker := time.NewTicker(time.Second)
@@ -67,6 +71,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleEcho(args)
 		case "SET":
 			response = handleSet(st, args)
+			if err := aof.Write(resp.BuildArray(args)); err != nil {
+				fmt.Printf("Failed to write to AOF: %v\n", err)
+			}
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
@@ -130,7 +137,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
 		case "CONFIG":
-			response = handleCONFIG(args, rdbConfig, aofConfig)
+			response = handleCONFIG(args, rdbConfig, aof)
 		case "KEYS":
 			response = handleKEY(args, rdbConfig,st)
 		case "SUBSCRIBE":
@@ -162,9 +169,11 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "AUTH":
 			response = handleAUTH(st, args, ps, c)
 		}
-		c.Connection.Write(response)
-		if _, ok := propagateCommands[command]; ok {
-			replicaManager.PropagateCommand(args)
+		if aof.AppendFsync == "always" {
+			if err := aof.Sync(); err != nil {
+				fmt.Printf("Failed to fsync AOF: %v\n", err)
+			}
 		}
+		c.Connection.Write(response)
 	}
 }

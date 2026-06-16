@@ -1,8 +1,10 @@
 package aof
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -38,6 +40,27 @@ func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename 
 	}
 }
 
+
+func (a *AOF) Sync() error {
+	if a.AppendOnly != "yes" {
+		return nil
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.file.Sync()
+}
+
+func (a *AOF) Write(args []byte) error {
+	if a.AppendOnly != "yes" {
+		return nil
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
+	_, err := a.file.Write(args)
+	return err
+}
+
 func (a *AOF) CreateAOFDir() error {
 	if a.AppendOnly == "yes" {
 		if a.AppendDirname == "" {
@@ -59,7 +82,16 @@ func (a *AOF) Open() error {
 	if a.AppendOnly != "yes" {
 		return nil
 	}
-	f, err := os.OpenFile(a.GetAOFFilePath(a.AppendFilename+".1.incr.aof"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	filename, err := a.readManifestFile()
+	if err != nil {
+		return a.OpenFile(a.AppendFilename + ".1.incr.aof")
+	}
+	return a.OpenFile(filename)
+}
+
+
+func (a *AOF) OpenFile(filename string) error {
+	f, err := os.OpenFile(a.GetAOFFilePath(filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -67,7 +99,31 @@ func (a *AOF) Open() error {
 	return nil
 }
 
-func _manifestContent(a *AOF) string {
+
+func (a *AOF) readManifestFile() (string, error) {
+	f, err := os.Open(a.Manifest.Filename)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+
+	var aofFile string
+	for scanner.Scan() {
+		line := scanner.Text()
+		splitedLine := strings.Split(strings.TrimSpace(line), " ")
+		filename := splitedLine[1]
+		switch splitedLine[5] {
+			case "i":
+				aofFile = filename
+		}
+	}
+	return aofFile, nil
+}
+
+
+func manifestContent(a *AOF) string {
 	return fmt.Sprintf("file %s.1.incr.aof seq %d type %s", a.AppendFilename, a.Manifest.Sequence, a.Manifest.Type)
 }
 
@@ -81,7 +137,7 @@ func (a *AOF) WriteManifest() error {
 	}
 	defer f.Close()
 	
-	content := _manifestContent(a)
+	content := manifestContent(a)
 	_, err = f.WriteString(content)
 	return err
 }
