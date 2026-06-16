@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"io"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
@@ -18,6 +17,10 @@ import (
 var propagateCommands = map[string]struct{}{
 	"SET": {},
 	"DEL": {},
+}
+
+var appendCommandsAOF = map[string]struct{}{
+	"SET": {},
 }
 
 func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aof *aof.AOF) {
@@ -37,10 +40,6 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 	for {
 		args, err :=resp.Parse(reader)
 		if err != nil {
-			fmt.Printf("Error parsing command: %v\n", err)
-			if err == io.EOF {
-				return
-			}
 			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 			c.Connection.Write(response)
 			return
@@ -170,12 +169,14 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "AUTH":
 			response = handleAUTH(st, args, ps, c)
 		}
-		// if aof.AppendFsync == "always" {
-		// 	if err := aof.Sync(); err != nil {
-		// 		fmt.Printf("Failed to fsync AOF: %v\n", err)
-		// 	}
-		// }
-		fmt.Printf("Sending response: %s\n", response)
+		if aof.AppendFsync == "always" {
+			if err := aof.Sync(); err != nil {
+				fmt.Printf("Failed to fsync AOF: %v\n", err)
+			}
+		}
+		if _, ok := propagateCommands[command]; ok {
+			replicaManager.PropagateCommand(args)
+		}
 		c.Connection.Write(response)
 	}
 }
