@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"io"
 
 	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 	"github.com/codecrafters-io/redis-starter-go/internal/resp"
@@ -36,7 +37,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 	for {
 		args, err :=resp.Parse(reader)
 		if err != nil {
-			fmt.Printf("Parse error: %v\n", err)
+			if err == io.EOF {
+				return
+			}
 			response = []byte(fmt.Sprintf("-ERR %s\r\n", err.Error()))
 			c.Connection.Write(response)
 			return
