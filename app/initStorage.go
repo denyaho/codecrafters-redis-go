@@ -6,7 +6,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"os"
 	"fmt"
-	"time"
+	_ "time"
 )
 
 func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
