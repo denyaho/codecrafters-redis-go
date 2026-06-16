@@ -19,10 +19,6 @@ var propagateCommands = map[string]struct{}{
 	"DEL": {},
 }
 
-var appendCommandsAOF = map[string]struct{}{
-	"SET": {},
-}
-
 func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aof *aof.AOF) {
 	defer c.Connection.Close()
 
@@ -136,6 +132,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			continue
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
+			fmt.Printf("Wait response %v", response)
 		case "CONFIG":
 			response = handleCONFIG(args, rdbConfig, aof)
 		case "KEYS":

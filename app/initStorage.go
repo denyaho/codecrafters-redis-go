@@ -6,7 +6,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"os"
 	"fmt"
-	_ "time"
+	"time"
 )
 
 func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
@@ -33,19 +33,19 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 		os.Exit(1)
 	}
 
-	// if aof.AppendFsync == "everysec" {
-	// 	go func() {
-	// 		timer := time.NewTicker(1 * time.Second)
-	// 		for {
-	// 			select {
-	// 				case <-timer.C:
-	// 					if err := aof.Sync(); err != nil {
-	// 						fmt.Printf("Failed to sync AOF file: %v\n", err)
-	// 					}
-	// 				}
-	// 			}
-	// 		}()
-	// }
+	if aof.AppendFsync == "everysec" {
+		go func() {
+			timer := time.NewTicker(1 * time.Second)
+			for {
+				select {
+					case <-timer.C:
+						if err := aof.Sync(); err != nil {
+							fmt.Printf("Failed to sync AOF file: %v\n", err)
+						}
+					}
+				}
+			}()
+	}
 	if err := aof.WriteManifest(); err != nil {
 		fmt.Printf("Failed to write AOF manifest: %v\n", err)
 		os.Exit(1)
