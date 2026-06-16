@@ -175,6 +175,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		// 		fmt.Printf("Failed to fsync AOF: %v\n", err)
 		// 	}
 		// }
+		fmt.Printf("Sending response: %s\n", response)
 		c.Connection.Write(response)
 	}
 }
