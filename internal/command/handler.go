@@ -132,7 +132,6 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			continue
 		case "WAIT":
 			response = handleWAIT(args, replicaManager)
-			fmt.Printf("Wait response %v", response)
 		case "CONFIG":
 			response = handleCONFIG(args, rdbConfig, aof)
 		case "KEYS":
@@ -170,6 +169,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			if err := aof.Sync(); err != nil {
 				fmt.Printf("Failed to fsync AOF: %v\n", err)
 			}
+		}
+		if command == "WAIT" {
+			fmt.Printf("WAIT command response: %s\n", string(response))
 		}
 		c.Connection.Write(response)
 	}
