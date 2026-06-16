@@ -170,14 +170,11 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "AUTH":
 			response = handleAUTH(st, args, ps, c)
 		}
-		if aof.AppendFsync == "always" {
-			if err := aof.Sync(); err != nil {
-				fmt.Printf("Failed to fsync AOF: %v\n", err)
-			}
-		}
-		if command == "WAIT" {
-			fmt.Printf("WAIT command response: %s\n", string(response))
-		}
+		// if aof.AppendFsync == "always" {
+		// 	if err := aof.Sync(); err != nil {
+		// 		fmt.Printf("Failed to fsync AOF: %v\n", err)
+		// 	}
+		// }
 		c.Connection.Write(response)
 	}
 }
