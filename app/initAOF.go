@@ -41,7 +41,9 @@ func AOFReplay(aof *aof.AOF, st *store.ExpireMap) error {
 	}
 	fmt.Printf("AOF files to replay: %v\n", aofFiles)
 	for _, aofFile := range aofFiles {
+		
 		aofFilePath := fmt.Sprintf("%s/%s", aofDirectory, aofFile.AOFFilename)
+		fmt.Printf("Replaying AOF file: %s\n", aofFilePath)
 		f, err := os.Open(aofFilePath)
 		if err != nil {
 			return fmt.Errorf("Failed to open AOF file: %v", err)
