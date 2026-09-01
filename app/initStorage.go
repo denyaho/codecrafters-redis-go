@@ -27,7 +27,11 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 			os.Exit(1)
 		}
 	}
-	aof := aof.NewAOF(config.CurrentDir, config.AppendOnly, config.AppendDirname, config.AppendFilename, config.AppendFsync)
+	aof, err := initAOF(config, st)
+	if err != nil {
+		fmt.Printf("Failed to initialize AOF: %v\n", err)
+		os.Exit(1)
+	}
 
 
 	if err := aof.CreateAOFDir(); err != nil {
