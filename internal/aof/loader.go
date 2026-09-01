@@ -188,7 +188,7 @@ func (a *AOF) WriteManifest() error {
 	if a.AppendOnly != "yes" {
 		return nil
 	}
-	f, err := os.OpenFile(a.GetAOFFilePath(a.Manifest.AOFFilename), os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(a.GetAOFFilePath(a.ManifestFilename), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
