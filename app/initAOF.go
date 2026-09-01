@@ -15,6 +15,7 @@ func initAOF(config *Config, st *store.ExpireMap) (*aof.AOF, error) {
 	AOFdirectory := fmt.Sprintf("%s/%s", aof.Dir, aof.AppendDirname)
 
 	if IsDir(AOFdirectory) && aof.AppendOnly == "yes" {
+		fmt.Println("Replaying AOF files...")
 		err := AOFReplay(aof, st)
 		if err != nil {
 			return nil, err
