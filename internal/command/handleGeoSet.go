@@ -77,26 +77,26 @@ func _geoHashEncode(longitude, latitude float64) uint64 {
 	return _interleaveits(uint32(lat_offset), uint32(lon_offset))
 }
 
-func handleGEOADD(st *store.ExpireMap, args []string) []byte {
+func handleGEOADD(st *store.ExpireMap, args []string) ([]byte, bool) {
 	if len(args) != 5 {
-		return resp.BuildError("ERR wrong number of arguments for 'GEOADD' command")
+		return resp.BuildError("ERR wrong number of arguments for 'GEOADD' command"), false
 	}
 
 	key := args[1]
 	longitude, err := strconv.ParseFloat(args[2], 64)
 	if err != nil {
-		return resp.BuildError("ERR value is not a valid float")
+		return resp.BuildError("ERR value is not a valid float"), false
 	}
 	latitude, err := strconv.ParseFloat(args[3], 64)
 	if err != nil {
-		return resp.BuildError("ERR value is not a valid float")
+		return resp.BuildError("ERR value is not a valid float"), false
 	}
 
 	if longitude < MINLONITUDE || longitude > MAXLONITUDE {
-		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
+		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude)), false
 	}
 	if latitude < MINLATITUDE || latitude > MAXLATITUDE {
-		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude))
+		return resp.BuildError(fmt.Sprintf("ERR invalid longitude,latitude pair %.6f, %.6f", longitude, latitude)), false
 	}
 	member := args[4]
 
@@ -104,9 +104,9 @@ func handleGEOADD(st *store.ExpireMap, args []string) []byte {
 	val, err := st.ZAdd(key, float64(geoHash), member)
 
 	if err != nil {
-		return resp.BuildError("ERR could not add geo data")
+		return resp.BuildError("ERR could not add geo data"), false
 	}
-	return resp.BuildInteger(val)
+	return resp.BuildInteger(val), true
 }
 
 func handleGEOPOS(st *store.ExpireMap, args []string) []byte {

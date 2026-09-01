@@ -60,25 +60,25 @@ func handleEXEC(st *store.ExpireMap, queue [][]string, c *pubsub.Client) []byte 
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			response = handleSet(st, args)			
+			response, _ = handleSet(st, args)			
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
-			response = handleRpush(st, args)
+			response, _ = handleRpush(st, args)
 		case "LRANGE":
 			response = handleLrange(st, args)
 		case "LPUSH":
-			response = handleLpush(st, args)
+			response, _ = handleLpush(st, args)
 		case "LLEN":
 			response = handleLlen(st, args)
 		case "LPOP":	
-			response = handleLpop(st, args)
+			response, _ = handleLpop(st, args)
 		case "BLPOP":
-			response = handleBLpop(st, args)
+			response, _ = handleBLpop(st, args)
 		case "TYPE":
 			response = handleType(st, args)
 		case "XADD":
-			response = handleXAdd(st, args)
+			response, _ = handleXAdd(st, args)
 		case "XRANGE":
 			response = handleXRange(st, args)
 		case "XREAD":

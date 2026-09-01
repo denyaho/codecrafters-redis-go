@@ -28,6 +28,27 @@ type ExpireMap struct {
 	versions map[string]int64
 }
 
+type Store interface {
+	Set(key, value string, expireAt time.Duration)
+	Get(key string) (string, bool)
+	Rpush(key string, value ...string) int
+	Lrange(key string, start, stop int) []string
+	LPush(key string, value ...string) int
+	Llen(key string) int
+	Lpop(key string) (string, bool)
+	BLPop(key string, timeout time.Duration) (string, bool, bool)
+	XAdd(key string, entryID string, pairs map[string]string) error
+	XReadBlock(key string, timeout time.Duration) ([]StreamEntry, bool, bool)
+}
+
+func NewExpireMap() *ExpireMap {
+	return &ExpireMap{
+		data: make(map[string]Item), 
+		signals: make(map[string]chan struct{}),
+		versions: make(map[string]int64),
+	}
+}
+
 
 func (m *ExpireMap) GetVersion(key string) int64 {
 	m.mu.RLock()
@@ -324,23 +345,3 @@ func (m *ExpireMap) XReadBlock(key, entryID string, timeout time.Duration) (bool
 	return true, false
 }
 
-type Store interface {
-	Set(key, value string, expireAt time.Duration)
-	Get(key string) (string, bool)
-	Rpush(key string, value ...string) int
-	Lrange(key string, start, stop int) []string
-	LPush(key string, value ...string) int
-	Llen(key string) int
-	Lpop(key string) (string, bool)
-	BLPop(key string, timeout time.Duration) (string, bool, bool)
-	XAdd(key string, entryID string, pairs map[string]string) error
-	XReadBlock(key string, timeout time.Duration) ([]StreamEntry, bool, bool)
-}
-
-func NewExpireMap() *ExpireMap {
-	return &ExpireMap{
-		data: make(map[string]Item), 
-		signals: make(map[string]chan struct{}),
-		versions: make(map[string]int64),
-	}
-}

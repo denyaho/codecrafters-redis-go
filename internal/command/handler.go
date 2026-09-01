@@ -19,8 +19,8 @@ var propagateCommands = map[string]struct{}{
 	"DEL": {},
 }
 
-var appendCommandsAOF = map[string]struct{}{
-	"SET": {},
+var writeCommands = map[string]struct{} {
+	"SET": {}, "DEL": {}, "RPUSH": {}, "LPUSH": {}, "LPOP": {}, "BLPOP": {}, "XADD": {}, "ZADD": {}, "ZREM": {}, "GEOADD": {},
 }
 
 func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *replication.ReplicaManager, rdbConfig *rdb.RDB, ps *pubsub.Manager, aof *aof.AOF) {
@@ -31,6 +31,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 
 	reader := bufio.NewReader(c.Connection)
 	var response []byte
+	var isWritten bool
 
 	role := replicaManager.Role
 	replID := replicaManager.ReplID
@@ -70,28 +71,28 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "ECHO":
 			response = handleEcho(args)
 		case "SET":
-			response = handleSet(st, args)
+			response, isWritten = handleSet(st, args)
 			if err := aof.Write(resp.BuildArray(args)); err != nil {
 				fmt.Printf("Failed to write to AOF: %v\n", err)
 			}
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
-			response = handleRpush(st, args)
+			response, isWritten = handleRpush(st, args)
 		case "LRANGE":
 			response = handleLrange(st, args)
 		case "LPUSH":
-			response = handleLpush(st, args)
+			response, isWritten = handleLpush(st, args)
 		case "LLEN":
 			response = handleLlen(st, args)
 		case "LPOP":	
-			response = handleLpop(st, args)
+			response, isWritten = handleLpop(st, args)
 		case "BLPOP":
-			response = handleBLpop(st, args)
+			response, isWritten = handleBLpop(st, args)
 		case "TYPE":
 			response = handleType(st, args)
 		case "XADD":
-			response = handleXAdd(st, args)
+			response, isWritten = handleXAdd(st, args)
 		case "XRANGE":
 			response = handleXRange(st, args)
 		case "XREAD":
@@ -145,7 +146,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "PUBLISH":
 			response = handlePUBLISH(args[1], args[2], ps)
 		case "ZADD":
-			response = handleZADD(st, args)
+			response, isWritten = handleZADD(st, args)
 		case "ZRANK":
 			response = handleZRANK(st, args)
 		case "ZRANGE":
@@ -155,9 +156,9 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "ZSCORE":
 			response = handleZSCORE(st, args)
 		case "ZREM":
-			response = handleZREM(st, args)
+			response, isWritten = handleZREM(st, args)
 		case "GEOADD":
-			response = handleGEOADD(st, args)
+			response, isWritten = handleGEOADD(st, args)
 		case "GEOPOS":
 			response = handleGEOPOS(st, args)	
 		case "GEODIST":
@@ -169,14 +170,20 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 		case "AUTH":
 			response = handleAUTH(st, args, ps, c)
 		}
-		if aof.AppendFsync == "always" {
-			if err := aof.Sync(); err != nil {
-				fmt.Printf("Failed to fsync AOF: %v\n", err)
+
+		c.Connection.Write(response)
+
+		_, ok := propagateCommands[command]
+		if isWritten && ok {
+			if err := aof.Write(resp.BuildArray(args)); err != nil {
+				fmt.Printf("Failed to write to AOF: %v\n", err)
+				continue
+			}
+			if aof.AppendFsync == "always" {
+				if err := aof.Sync(); err != nil {
+					fmt.Printf("Failed to fsync AOF: %v\n", err)
+				}
 			}
 		}
-		if _, ok := propagateCommands[command]; ok {
-			replicaManager.PropagateCommand(args)
-		}
-		c.Connection.Write(response)
 	}
 }

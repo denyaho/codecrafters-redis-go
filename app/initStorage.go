@@ -10,9 +10,14 @@ import (
 )
 
 func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
-	rdb := rdb.NewRDB(config.CurrentDir, config.DBFilename)
 
 	st := store.NewExpireMap()
+
+	rdb, err := initRDB(config, st)
+	if err != nil {
+		fmt.Printf("Failed to initialize RDB: %v\n", err)
+		os.Exit(1)
+	}
 
 	if err := rdb.ReadFile(st); err != nil {
 		if os.IsNotExist(err) {
@@ -24,11 +29,12 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 	}
 	aof := aof.NewAOF(config.CurrentDir, config.AppendOnly, config.AppendDirname, config.AppendFilename, config.AppendFsync)
 
+
 	if err := aof.CreateAOFDir(); err != nil {
 		fmt.Printf("Failed to create AOF directory: %v\n", err)
 		os.Exit(1)
 	}
-	if err := aof.Open(); err != nil {
+	if err := aof.OpenFile(aof.Manifest.AOFFilename); err != nil {
 		fmt.Printf("Failed to open AOF: %v\n", err)
 		os.Exit(1)
 	}

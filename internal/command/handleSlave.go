@@ -74,7 +74,7 @@ func HandleConnect_to_Master(conn net.Conn, st *store.ExpireMap, replicaManager 
 				isFirstREPLCONFSent = false
 			}
 		case "SET":
-			_ = handleSet(st, args)
+			_, _ = handleSet(st, args)
 			replicaManager.AddOffset(args)
 		case "PING":
 			_ = handlePing()

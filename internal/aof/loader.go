@@ -1,15 +1,17 @@
 package aof
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
 
-type manifest struct {
-	Filename string
+type Manifest struct {
+	AOFFilename string
 	Sequence int64
 	Type string
 }
@@ -20,9 +22,10 @@ type AOF struct {
 	AppendDirname  string
 	AppendFilename string
 	AppendFsync    string
+	ManifestFilename string
 	file *os.File
 	mu sync.Mutex
-	Manifest manifest
+	Manifest Manifest
 }
 
 func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename string, appendFsync string) *AOF {
@@ -32,14 +35,14 @@ func NewAOF(dir string, appendOnly string, appendDirname string, appendFilename 
 		AppendDirname: appendDirname,
 		AppendFilename: appendFilename,
 		AppendFsync: appendFsync,
-		Manifest: manifest{
-			Filename: appendFilename + ".manifest",
+		ManifestFilename: appendFilename + ".manifest",
+		Manifest: Manifest{
+			AOFFilename: appendFilename + ".1.incr.aof",
 			Sequence: 1,
 			Type: "i",
 		},
 	}
 }
-
 
 func (a *AOF) Sync() error {
 	if a.AppendOnly != "yes" {
@@ -48,6 +51,17 @@ func (a *AOF) Sync() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.file.Sync()
+}
+
+func (a *AOF) Exists(name string) (bool, error) {
+	f, err := os.Open(name)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	defer f.Close()
+	return true, nil
 }
 
 func (a *AOF) Write(args []byte) error {
@@ -78,16 +92,16 @@ func (a *AOF) GetAOFFilePath(filename string) string {
 	return a.Dir + "/" + a.AppendDirname + "/" + filename
 }
 
-func (a *AOF) Open() error {
-	if a.AppendOnly != "yes" {
-		return nil
-	}
-	filename, err := a.readManifestFile()
-	if err != nil {
-		return a.OpenFile(a.AppendFilename + ".1.incr.aof")
-	}
-	return a.OpenFile(filename)
-}
+// func (a *AOF) Open(filePath string) error {
+// 	if a.AppendOnly != "yes" {
+// 		return nil
+// 	}
+// 	aofFiles, err := a.readManifestFile(filePath)
+// 	if err != nil {
+// 		return a.OpenFile(a.AppendFilename + ".1.incr.aof")
+// 	}
+// 	return a.OpenFile(filename)
+// }
 
 
 func (a *AOF) OpenFile(filename string) error {
@@ -99,28 +113,71 @@ func (a *AOF) OpenFile(filename string) error {
 	return nil
 }
 
-
-func (a *AOF) readManifestFile() (string, error) {
-	f, err := os.Open(a.Manifest.Filename)
-	if err != nil {
-		return "", err
+func (a *AOF) ParseManifest(data []string) error {
+	if len(data) != 6 {
+		return fmt.Errorf("Invalid manifest format")
 	}
-	defer f.Close()
+	if data[0] != "file" || data[2] != "seq" || data[4] != "type" {
+		return fmt.Errorf("Invalid manifest format")
+	}
+	return nil
+}
 
-	scanner := bufio.NewScanner(f)
 
-	var aofFile string
-	for scanner.Scan() {
-		line := scanner.Text()
-		splitedLine := strings.Split(strings.TrimSpace(line), " ")
-		filename := splitedLine[1]
-		switch splitedLine[5] {
-			case "i":
-				aofFile = filename
+func (a *AOF) ReadManifestFile(filePath string) ([]Manifest, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("Failed to read AOF manifest: %v", err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
+	aofFiles := []Manifest{}
+	for _, line := range lines {
+		data := strings.Split(line, " ")
+		if err := a.ParseManifest(data); err != nil {
+			return nil, err
+		}
+		if data[5] == "i" {
+			seq, _ := strconv.ParseInt(data[3], 10, 64)
+			aofFiles = append(aofFiles, Manifest{
+				AOFFilename: data[1],
+				Sequence: seq,
+				Type: "i",
+			})
 		}
 	}
-	return aofFile, nil
+	sort.Slice(aofFiles, func(i, j int) bool {
+		return aofFiles[i].Sequence < aofFiles[j].Sequence
+	})
+	return aofFiles, nil
 }
+
+
+// func (a *AOF) readManifestFile() (string, error) {
+// 	f, err := os.Open(a.Manifest.Filename)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	defer f.Close()
+
+// 	scanner := bufio.NewScanner(f)
+
+// 	var aofFile string
+// 	for scanner.Scan() {
+// 		line := scanner.Text()
+// 		splitedLine := strings.Split(strings.TrimSpace(line), " ")
+// 		filename := splitedLine[1]
+// 		switch splitedLine[5] {
+// 			case "i":
+// 				aofFile = filename
+// 		}
+
+// 	}
+// 	return aofFile, nil
+// }
 
 
 func manifestContent(a *AOF) string {
@@ -131,7 +188,7 @@ func (a *AOF) WriteManifest() error {
 	if a.AppendOnly != "yes" {
 		return nil
 	}
-	f, err := os.OpenFile(a.GetAOFFilePath(a.Manifest.Filename), os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(a.GetAOFFilePath(a.Manifest.AOFFilename), os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}

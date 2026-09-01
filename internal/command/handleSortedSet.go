@@ -7,22 +7,22 @@ import (
 
 )
 
-func handleZADD(st *store.ExpireMap, args []string) []byte {
+func handleZADD(st *store.ExpireMap, args []string) ([]byte, bool) {
 	if len(args) != 4 {
-		return resp.BuildError("ERR wrong number of arguments for 'ZADD' command")
+		return resp.BuildError("ERR wrong number of arguments for 'ZADD' command"), false
 	}
 
 	key := args[1]
 	score, err := strconv.ParseFloat(args[2], 64)
 	if err != nil {
-		return resp.BuildError("ERR value is not a valid float")
+		return resp.BuildError("ERR value is not a valid float"), false
 	}
 	member := args[3]
 	val, err := st.ZAdd(key, score, member)
 	if err != nil {
-		return resp.BuildError(err.Error())
+		return resp.BuildError(err.Error()), false
 	}
-	return resp.BuildInteger(val)
+	return resp.BuildInteger(val), true
 }
 
 func handleZRANK(st *store.ExpireMap, args []string) []byte {
@@ -86,15 +86,15 @@ func handleZSCORE(st *store.ExpireMap, args []string) []byte {
 	return resp.BuildBulkStrings(strconv.FormatFloat(score, 'f', -1, 64))
 }
 
-func handleZREM(st *store.ExpireMap, args []string) []byte {
+func handleZREM(st *store.ExpireMap, args []string) ([]byte, bool) {
 	if len(args) != 3 {
-		return resp.BuildError("ERR wrong number of argument for 'ZREM' command")
+		return resp.BuildError("ERR wrong number of argument for 'ZREM' command"), false
 	}	
 	key := args[1]
 	member := args[2]
 	count, err := st.ZRem(key, member)
 	if err != nil {
-		return resp.BuildError(err.Error())
+		return resp.BuildError(err.Error()), false
 	}
-	return resp.BuildInteger(count)
+	return resp.BuildInteger(count), true
 }
