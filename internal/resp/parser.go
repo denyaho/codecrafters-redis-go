@@ -26,7 +26,7 @@ func parseArray(reader *bufio.Reader, count int ) ([]string, error) {
 	for i := 0; i < count; i++{
 		bulk_string, err := parseBulkString(reader)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse bulk string: %v", err)
+			return nil, fmt.Errorf("failed to parse bulk string: %w", err)
 		}
 		args[i] = bulk_string
 	}
@@ -36,7 +36,7 @@ func parseArray(reader *bufio.Reader, count int ) ([]string, error) {
 func Parse(reader *bufio.Reader) ([]string, error)  {
 	message, err := reader.ReadString('\n')
 	if err != nil {
-		return nil, fmt.Errorf("failed to read from connection: %v", err)
+		return nil, fmt.Errorf("failed to read from connection: %w", err)
 	}
 	fmt.Printf("Received raw message: %s, %c\n", message, message[0])
 	switch message[0] {
