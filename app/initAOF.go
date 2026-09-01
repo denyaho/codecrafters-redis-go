@@ -6,7 +6,6 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/internal/aof"
 	"github.com/codecrafters-io/redis-starter-go/internal/store"
 	"github.com/codecrafters-io/redis-starter-go/internal/command"
-	"errors"
 )
 
 func initAOF(config *Config, st *store.ExpireMap) (*aof.AOF, error) {
@@ -15,7 +14,6 @@ func initAOF(config *Config, st *store.ExpireMap) (*aof.AOF, error) {
 	AOFdirectory := fmt.Sprintf("%s/%s", aof.Dir, aof.AppendDirname)
 
 	if IsDir(AOFdirectory) && aof.AppendOnly == "yes" {
-		fmt.Println("Replaying AOF files...")
 		err := AOFReplay(aof, st)
 		if err != nil {
 			return nil, err
@@ -35,16 +33,6 @@ func IsDir(path string) bool {
 
 func AOFReplay(aof *aof.AOF, st *store.ExpireMap) error {
 	aofDirectory := fmt.Sprintf("%s/%s", aof.Dir, aof.AppendDirname)
-	info, err := os.Stat(aofDirectory)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil
-		}
-		return fmt.Errorf("Failed to stat AOF directory: %v", err)
-	}
-	if !info.IsDir() {
-		return fmt.Errorf("AOF path exists but is not a directory: %s", aofDirectory)
-	}
 	manifestFile := aof.AppendFilename + ".manifest"
 	manifestPath := fmt.Sprintf("%s/%s", aofDirectory, manifestFile)
 	aofFiles, err := aof.ReadManifestFile(manifestPath)
