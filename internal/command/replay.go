@@ -16,6 +16,7 @@ func ApplyForReplay(st *store.ExpireMap, file *os.File) error {
 	reader := bufio.NewReader(file)
 	for {
 		args, err := resp.Parse(reader)
+		fmt.Printf("Parsed args: %v\n", args)
 		if err != nil {
 			if errors.Is(err, io.ErrUnexpectedEOF) {
 				break
