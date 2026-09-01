@@ -72,9 +72,6 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 			response = handleEcho(args)
 		case "SET":
 			response, isWritten = handleSet(st, args)
-			if err := aof.Write(resp.BuildArray(args)); err != nil {
-				fmt.Printf("Failed to write to AOF: %v\n", err)
-			}
 		case "GET":
 			response = handleGet(st, args)
 		case "RPUSH":
