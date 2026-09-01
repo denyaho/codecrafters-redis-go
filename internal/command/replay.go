@@ -18,7 +18,7 @@ func ApplyForReplay(st *store.ExpireMap, file *os.File) error {
 		args, err := resp.Parse(reader)
 		fmt.Printf("Parsed args: %v\n", args)
 		if err != nil {
-			if errors.Is(err, io.ErrUnexpectedEOF) {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return fmt.Errorf("Failed to parse AOF file: %v", err)
