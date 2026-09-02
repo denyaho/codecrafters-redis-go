@@ -75,14 +75,16 @@ func (a *AOF) Write(args []byte) error {
 	return err
 }
 
-func (a *AOF) CreateAOFDir() error {
+func (a *AOF) CreateAOFDir() (string, error) {
 	if a.AppendOnly == "yes" {
-		if a.AppendDirname == "" {
-			return os.MkdirAll(a.Dir + "/" + a.AppendFilename, 0755)
+		dirName := a.AppendDirname
+		if dirName == "" {
+			dirName = "appendonlydir"
 		}
-		return os.MkdirAll(a.Dir + "/" + a.AppendDirname, 0755)	
+		dirPath := a.Dir + "/" + dirName
+		return dirPath, os.MkdirAll(dirPath, 0755)	
 	}
-	return nil
+	return "", nil
 }
 
 func (a *AOF) GetAOFFilePath(filename string) string {
@@ -104,8 +106,8 @@ func (a *AOF) GetAOFFilePath(filename string) string {
 // }
 
 
-func (a *AOF) OpenFile(filename string) error {
-	f, err := os.OpenFile(a.GetAOFFilePath(filename), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func (a *AOF) OpenFile(filePath string) error {
+	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
