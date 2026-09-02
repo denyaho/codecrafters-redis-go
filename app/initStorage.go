@@ -39,7 +39,7 @@ func initStorage(config *Config) (*store.ExpireMap, *rdb.RDB, *aof.AOF) {
 		os.Exit(1)
 	}
 
-	if err := aof.OpenFile(aof.AppendFilename); err != nil {
+	if err := aof.OpenFile(aof.Manifest.AOFFilename); err != nil {
 		fmt.Printf("Failed to open AOF: %v\n", err)
 		os.Exit(1)
 	}
