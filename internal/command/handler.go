@@ -172,6 +172,7 @@ func HandleConnection(c *pubsub.Client, st *store.ExpireMap, replicaManager *rep
 
 		_, ok := propagateCommands[command]
 		if isWritten && ok {
+			replicaManager.PropagateCommand(args)
 			if err := aof.Write(resp.BuildArray(args)); err != nil {
 				fmt.Printf("Failed to write to AOF: %v\n", err)
 				continue
